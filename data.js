@@ -573,6 +573,24 @@ const vocabularyData = {
                 { word: 'message', type: 'noun', pronunciation: '/ˈmesɪdʒ/', meaning: 'Tin nhắn', example: 'Send me a message.' },
                 { word: 'inbox', type: 'noun', pronunciation: '/ˈɪnbɑːks/', meaning: 'Hộp thư đến', example: 'Check your inbox daily.' }
             ]
+        },
+        {
+            id: 'human-resources',
+            name: 'Human Resources',
+            icon: '👥',
+            description: 'Từ vựng nhân sự và tuyển dụng nâng cao',
+            words: [
+                { word: 'consultant', type: 'noun', pronunciation: '/kənˈsʌltənt/', meaning: 'Cố vấn, tư vấn viên', example: 'We hired a business consultant.' },
+                { word: 'curriculum vitae', type: 'noun', pronunciation: '/kəˌrɪkjələm ˈviːtaɪ/', meaning: 'Sơ yếu lý lịch (CV)', example: 'Please send your CV.' },
+                { word: 'dismiss', type: 'verb', pronunciation: '/dɪsˈmɪs/', meaning: 'Sa thải, giải tán', example: 'He was dismissed for misconduct.' },
+                { word: 'executive', type: 'noun', pronunciation: '/ɪɡˈzekjətɪv/', meaning: 'Ủy viên ban quản trị, giám đốc', example: 'Senior executives met today.' },
+                { word: 'headquarters', type: 'noun', pronunciation: '/ˈhedkwɔːrtərz/', meaning: 'Trụ sở chính', example: 'The headquarters is in London.' },
+                { word: 'incentive', type: 'noun', pronunciation: '/ɪnˈsentɪv/', meaning: 'Sự khích lệ, tiền thưởng', example: 'They offer financial incentives.' },
+                { word: 'merger', type: 'noun', pronunciation: '/ˈmɜːrdʒər/', meaning: 'Sự sáp nhập', example: 'The merger will be completed soon.' },
+                { word: 'orientation', type: 'noun', pronunciation: '/ˌɔːriənˈteɪʃn/', meaning: 'Buổi định hướng', example: 'New employee orientation is on Monday.' },
+                { word: 'payroll', type: 'noun', pronunciation: '/ˈpeɪroʊl/', meaning: 'Bảng lương', example: 'Payroll is processed monthly.' },
+                { word: 'pension', type: 'noun', pronunciation: '/ˈpenʃn/', meaning: 'Lương hưu', example: 'He will receive a good pension.' }
+            ]
         }
     ]
 };

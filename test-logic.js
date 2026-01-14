@@ -15,8 +15,57 @@ const testState = {
 // PRACTICE TEST FUNCTIONS
 // ============================================
 
+function getAllTests() {
+    const tests = [];
+    if (typeof fullTests !== 'undefined') tests.push(...fullTests.tests);
+    if (typeof listeningTests !== 'undefined') tests.push(...listeningTests.tests);
+    return tests;
+}
+
+function findTestById(testId) {
+    return getAllTests().find(t => t.id === testId);
+}
+
+function renderTestSelectionList() {
+    const testList = document.querySelector('.test-list');
+    if (!testList) return;
+
+    testList.innerHTML = '';
+    const tests = getAllTests();
+
+    tests.forEach(test => {
+        const div = document.createElement('div');
+        div.className = 'test-card';
+        div.dataset.testId = test.id;
+
+        // Count parts
+        const partsInfo = test.sections.map(s => `
+            <span class="test-part">${s.name} (${s.questionCount} câu)</span>
+        `).join('');
+
+        div.innerHTML = `
+            <div class="test-header">
+                <h3>${test.name}</h3>
+                <span class="test-duration">⏱️ ${test.duration} phút</span>
+            </div>
+            <p class="test-description">${test.description}</p>
+            <div class="test-parts">
+                ${partsInfo}
+            </div>
+            <button class="start-test-btn">Bắt đầu thi</button>
+        `;
+
+        // Add event listener directly
+        div.querySelector('.start-test-btn').addEventListener('click', () => {
+            startPracticeTest(test.id);
+        });
+
+        testList.appendChild(div);
+    });
+}
+
 function startPracticeTest(testId) {
-    const test = getFullTestById(testId); // Changed from getTestById
+    const test = findTestById(testId);
     if (!test) return;
 
     testState.currentTest = test;
@@ -65,7 +114,9 @@ function startPracticeTest(testId) {
                         sectionId: section.id,
                         sectionName: section.name,
                         passageText: passageText,
-                        passageTitle: passageTitle
+                        passageTitle: passageTitle,
+                        // Pass audio script from passage if exists
+                        audioScript: q.audioScript || passage.audioScript
                     });
                 });
             });
@@ -101,14 +152,55 @@ function renderTestQuestion() {
         `Câu ${testState.currentQuestionIndex + 1}/${testState.allQuestions.length}`;
 
     // Render passage in left column (if exists)
+    let passageHtml = '';
+
+    // Check if question has audio (Part 1, 2) or moved from passage
+    if (question.audioScript) {
+        passageHtml += `
+            <div class="audio-control">
+                <button class="play-audio-btn" data-audio="${encodeURIComponent(question.audioScript)}" onclick="playAudio(this)">
+                    🔊 Nghe phát âm
+                </button>
+                <div class="audio-script hidden">
+                    <strong>Transcript:</strong><br>
+                    ${question.audioScript.replace(/\n/g, '<br>')}
+                </div>
+                <button class="toggle-script-btn" onclick="this.previousElementSibling.classList.toggle('hidden')">
+                    👁️ Xem/Ẩn Transcript
+                </button>
+            </div>
+        `;
+    }
+
+    // Check if question has image (Part 1)
+    if (question.imageUrl) {
+        passageHtml += `
+            <div class="question-image">
+                <img src="${question.imageUrl}" alt="Question Image" style="max-width: 100%; border-radius: 8px; margin-bottom: 1rem;">
+            </div>
+        `;
+    }
+
     if (question.passageText) {
-        passageColumn.innerHTML = `
+        passageHtml += `
             ${question.passageTitle ? `<div class="passage-title">${question.passageTitle}</div>` : ''}
             <div class="passage-text">${question.passageText}</div>
         `;
-    } else {
-        passageColumn.innerHTML = '';
     }
+
+    // Audio for passage (Part 3, 4) - Usually attached to the first question of the set, 
+    // but we can check if the current question's passage has an audioScript property 
+    // (requires modifying the flattening logic or just checking here if we had access to passage).
+    // In our flattening logic, we didn't explicitly pass passage audio. 
+    // Let's rely on the fact that if a passage has audio, it should be rendered.
+    // However, the flatten logic copied text. Let's assume for now listening data puts audioScript on the question or we need to fix flattening.
+
+    // FIX: The flattening logic in startPracticeTest needs to carry over audioScript from passage to questions.
+    // I will assume for now that I updated listening-data to put audioScript on questions OR 
+    // I should update startPracticeTest flattening logic. 
+    // Let's just output what we have.
+
+    passageColumn.innerHTML = passageHtml;
 
     // Render question in right column
     let html = '';
@@ -232,7 +324,11 @@ function submitTest(autoSubmit = false) {
     const sectionScores = {
         part5: { correct: 0, total: 0 },
         part6: { correct: 0, total: 0 },
-        part7: { correct: 0, total: 0 }
+        part7: { correct: 0, total: 0 },
+        part1: { correct: 0, total: 0 },
+        part2: { correct: 0, total: 0 },
+        part3: { correct: 0, total: 0 },
+        part4: { correct: 0, total: 0 }
     };
 
     testState.allQuestions.forEach((question, index) => {
@@ -254,10 +350,10 @@ function submitTest(autoSubmit = false) {
     });
 
     // Show results
-    showTestResults(totalScore, testState.allQuestions.length, sectionScores);
+    showTestResults(totalScore, testState.allQuestions.length, sectionScores, testState.currentTest);
 }
 
-function showTestResults(score, total, sectionScores) {
+function showTestResults(score, total, sectionScores, test) {
     // Hide test taking, show results
     document.getElementById('test-taking').classList.add('hidden');
     document.getElementById('test-results').classList.remove('hidden');
@@ -275,7 +371,45 @@ function showTestResults(score, total, sectionScores) {
     document.getElementById('part6-score').textContent =
         `${sectionScores.part6.correct}/${sectionScores.part6.total}`;
     document.getElementById('part7-score').textContent =
-        `${sectionScores.part7.correct}/${sectionScores.part7.total}`;
+        `${sectionScores.part7 ? sectionScores.part7.correct : 0}/${sectionScores.part7 ? sectionScores.part7.total : 0}`;
+
+    // Dynamic sections (for listening)
+    const breakdown = document.querySelector('.results-breakdown');
+    if (test && test.type === 'listening') {
+        breakdown.innerHTML = `
+            <div class="breakdown-item">
+                <span class="breakdown-label">Part 1 (Photographs)</span>
+                <span class="breakdown-score">${sectionScores.part1 ? sectionScores.part1.correct : 0}/${sectionScores.part1 ? sectionScores.part1.total : 0}</span>
+            </div>
+            <div class="breakdown-item">
+                <span class="breakdown-label">Part 2 (Q&A)</span>
+                <span class="breakdown-score">${sectionScores.part2 ? sectionScores.part2.correct : 0}/${sectionScores.part2 ? sectionScores.part2.total : 0}</span>
+            </div>
+            <div class="breakdown-item">
+                <span class="breakdown-label">Part 3 (Conversations)</span>
+                <span class="breakdown-score">${sectionScores.part3 ? sectionScores.part3.correct : 0}/${sectionScores.part3 ? sectionScores.part3.total : 0}</span>
+            </div>
+            <div class="breakdown-item">
+                <span class="breakdown-label">Part 4 (Talks)</span>
+                <span class="breakdown-score">${sectionScores.part4 ? sectionScores.part4.correct : 0}/${sectionScores.part4 ? sectionScores.part4.total : 0}</span>
+            </div>
+        `;
+    } else {
+        breakdown.innerHTML = `
+            <div class="breakdown-item">
+                <span class="breakdown-label">Part 5 (Grammar)</span>
+                <span class="breakdown-score">${sectionScores.part5 ? sectionScores.part5.correct : 0}/${sectionScores.part5 ? sectionScores.part5.total : 0}</span>
+            </div>
+            <div class="breakdown-item">
+                <span class="breakdown-label">Part 6 (Text Completion)</span>
+                <span class="breakdown-score">${sectionScores.part6 ? sectionScores.part6.correct : 0}/${sectionScores.part6 ? sectionScores.part6.total : 0}</span>
+            </div>
+            <div class="breakdown-item">
+                <span class="breakdown-label">Part 7 (Reading)</span>
+                <span class="breakdown-score">${sectionScores.part7 ? sectionScores.part7.correct : 0}/${sectionScores.part7 ? sectionScores.part7.total : 0}</span>
+            </div>
+        `;
+    }
 
     // Update message
     let message = '';
@@ -320,6 +454,7 @@ function exitTest() {
 document.addEventListener('DOMContentLoaded', () => {
     // Practice test button
     document.getElementById('practice-test')?.addEventListener('click', () => {
+        renderTestSelectionList();
         navigateTo('test-screen');
     });
 
@@ -328,12 +463,15 @@ document.addEventListener('DOMContentLoaded', () => {
         navigateTo('home-screen');
     });
 
-    // Start test button
+    // Start test button - Now handled in renderTestSelectionList
+    // But we keep this for any static buttons if they exist
     document.querySelectorAll('.start-test-btn').forEach(btn => {
         btn.addEventListener('click', function () {
             const testCard = this.closest('.test-card');
-            const testId = testCard.dataset.testId;
-            startPracticeTest(testId);
+            if (testCard) {
+                const testId = testCard.dataset.testId;
+                startPracticeTest(testId);
+            }
         });
     });
 
@@ -474,6 +612,31 @@ function renderReviewContent() {
             </div>
         `;
 
+        // Show Image (Part 1)
+        if (question.imageUrl) {
+            html += `
+                <div class="review-image" style="margin-bottom: 1rem;">
+                    <img src="${question.imageUrl}" alt="Question Image" style="max-width: 100%; border-radius: 8px;">
+                </div>
+            `;
+        }
+
+        // Show Audio & Transcript (Listening Parts)
+        if (question.audioScript) {
+            html += `
+                <div class="review-audio" style="margin-bottom: 1rem; padding: 15px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e5e7eb;">
+                    <button class="play-audio-btn" data-audio="${encodeURIComponent(question.audioScript)}" style="margin-bottom: 10px; padding: 8px 16px; background: #4f46e5; color: white; border-radius: 6px; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px;" onclick="playAudio(this)">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                        Nghe lại phát âm
+                    </button>
+                    <div class="audio-script" style="margin-top: 10px; font-size: 0.95rem; line-height: 1.5; color: #374151;">
+                        <strong>Transcript:</strong><br>
+                        ${question.audioScript.replace(/\n/g, '<br>')}
+                    </div>
+                </div>
+            `;
+        }
+
         // Show passage if exists
         if (question.passageText) {
             html += `
@@ -527,4 +690,33 @@ function renderReviewContent() {
         questionDiv.innerHTML = html;
         reviewContent.appendChild(questionDiv);
     });
+}
+// Audio Helper
+let currentSpeech = null;
+
+function playAudio(btn) {
+    const text = decodeURIComponent(btn.dataset.audio);
+    speakText(btn, text);
+}
+
+function speakText(btn, text) {
+    if (currentSpeech) {
+        window.speechSynthesis.cancel();
+        currentSpeech = null;
+        if (btn) btn.textContent = '🔊 Nghe phát âm';
+        return;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-US';
+    utterance.rate = 0.9;
+
+    utterance.onend = () => {
+        currentSpeech = null;
+        if (btn) btn.textContent = '🔊 Nghe phát âm';
+    };
+
+    if (btn) btn.textContent = '⏹️ Dừng';
+    currentSpeech = utterance;
+    window.speechSynthesis.speak(utterance);
 }
