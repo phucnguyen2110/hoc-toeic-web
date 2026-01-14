@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="TOEIC Master">
+    <link rel="apple-touch-icon" href="https://via.placeholder.com/192.png?text=TOEIC">
+    <meta name="description"
+        content="Ứng dụng học từ vựng TOEIC hiệu quả, giúp bạn đạt 700+ TOEIC trong thời gian ngắn">
+    <title>TOEIC Vocab Master - Chinh phục 700+ TOEIC</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="test-styles.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <!-- App Container -->
+    <div id="app" class="app-container">
+
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="logo">
+                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="32" height="32" rx="8" fill="url(#gradient)" />
+                        <path d="M10 12H22M10 16H22M10 20H18" stroke="white" stroke-width="2" stroke-linecap="round" />
+                        <defs>
+                            <linearGradient id="gradient" x1="0" y1="0" x2="32" y2="32">
+                                <stop offset="0%" stop-color="#667eea" />
+                                <stop offset="100%" stop-color="#764ba2" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <h1>TOEIC Vocab Master</h1>
+                </div>
+                <div class="header-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Mục tiêu</span>
+                        <span class="stat-value">700+</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Tiến độ</span>
+                        <span class="stat-value" id="progress-value">0%</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+
+            <!-- Home Screen -->
+            <section id="home-screen" class="screen active">
+                <div class="welcome-section">
+                    <h2 class="gradient-text">Chinh phục TOEIC 700+ trong 2 tuần! 🚀</h2>
+                    <p class="subtitle">Học từ vựng thông minh với flashcard và quiz theo chủ đề</p>
+
+                    <!-- Progress Card -->
+                    <div class="progress-card">
+                        <div class="progress-header">
+                            <h3>Tiến độ học tập</h3>
+                            <span class="progress-percent" id="total-progress">0/600 từ</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" id="progress-bar" style="width: 0%"></div>
+                        </div>
+                        <div class="progress-stats">
+                            <div class="progress-stat">
+                                <span class="stat-number" id="mastered-words">0</span>
+                                <span class="stat-text">Đã thuộc</span>
+                            </div>
+                            <div class="progress-stat">
+                                <span class="stat-number" id="learning-words">0</span>
+                                <span class="stat-text">Đang học</span>
+                            </div>
+                            <div class="progress-stat">
+                                <span class="stat-number" id="remaining-words">600</span>
+                                <span class="stat-text">Chưa học</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Topics Grid -->
+                    <div class="topics-section">
+                        <h3>Chọn chủ đề để bắt đầu</h3>
+                        <div class="topics-grid" id="topics-grid">
+                            <!-- Topics will be loaded dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="quick-actions">
+                        <button class="action-btn primary" id="continue-learning">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M5 3l14 9-14 9V3z" stroke-width="2" stroke-linejoin="round" />
+                            </svg>
+                            Tiếp tục học
+                        </button>
+                        <button class="action-btn secondary" id="random-quiz">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <circle cx="12" cy="12" r="10" stroke-width="2" />
+                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" stroke-width="2"
+                                    stroke-linecap="round" />
+                                <circle cx="12" cy="17" r="1" fill="currentColor" />
+                            </svg>
+                            Quiz ngẫu nhiên
+                        </button>
+                        <button class="action-btn practice-test" id="practice-test">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path
+                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                                    stroke-width="2" />
+                                <path d="M9 12h6m-6 4h6" stroke-width="2" stroke-linecap="round" />
+                            </svg>
+                            Đề thi TOEIC
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Flashcard Screen -->
+            <section id="flashcard-screen" class="screen">
+                <div class="screen-header">
+                    <button class="back-btn" id="back-from-flashcard">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M19 12H5M12 19l-7-7 7-7" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                        </svg>
+                    </button>
+                    <h2 id="flashcard-topic-title">Topic Name</h2>
+                    <div class="card-counter">
+                        <span id="current-card">1</span>/<span id="total-cards">10</span>
+                    </div>
+                </div>
+
+                <div class="flashcard-container">
+                    <div class="flashcard" id="flashcard">
+                        <div class="flashcard-front">
+                            <div class="word-type" id="word-type">noun</div>
+                            <h3 class="word" id="word">Loading...</h3>
+                            <button class="flip-hint">Nhấn để xem nghĩa</button>
+                        </div>
+                        <div class="flashcard-back">
+                            <h3 class="word" id="word-back">Loading...</h3>
+                            <div class="pronunciation" id="pronunciation">/prəˌnʌnsiˈeɪʃn/</div>
+                            <div class="meaning" id="meaning">Nghĩa tiếng Việt</div>
+                            <div class="example" id="example">Example sentence here.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flashcard-actions">
+                    <button class="know-btn" id="know-btn">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M20 6L9 17l-5-5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        Đã thuộc
+                    </button>
+                    <button class="learning-btn" id="learning-btn">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        Đang học
+                    </button>
+                    <button class="unknown-btn" id="unknown-btn">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M18 6L6 18M6 6l12 12" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                        </svg>
+                        Chưa thuộc
+                    </button>
+                </div>
+
+                <div class="progress-dots" id="progress-dots">
+                    <!-- Progress dots will be added dynamically -->
+                </div>
+            </section>
+
+            <!-- Quiz Screen -->
+            <section id="quiz-screen" class="screen">
+                <div class="screen-header">
+                    <button class="back-btn" id="back-from-quiz">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M19 12H5M12 19l-7-7 7-7" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                        </svg>
+                    </button>
+                    <h2 id="quiz-topic-title">Quiz</h2>
+                    <div class="quiz-score">
+                        <span id="quiz-score">0</span>/<span id="quiz-total">10</span>
+                    </div>
+                </div>
+
+                <div class="quiz-container">
+                    <div class="question-card">
+                        <div class="question-number">Câu <span id="question-number">1</span>/10</div>
+                        <h3 class="question-text" id="question-text">What does this word mean?</h3>
+                        <div class="question-word" id="question-word">accommodate</div>
+
+                        <div class="options-container" id="options-container">
+                            <!-- Options will be loaded dynamically -->
+                        </div>
+                    </div>
+
+                    <div class="quiz-result hidden" id="quiz-result">
+                        <div class="result-icon" id="result-icon">✓</div>
+                        <h3 class="result-title" id="result-title">Chính xác!</h3>
+                        <p class="result-explanation" id="result-explanation">Accommodate nghĩa là cung cấp chỗ ở, điều
+                            chỉnh để phù hợp</p>
+                        <button class="next-question-btn" id="next-question-btn">Câu tiếp theo</button>
+                    </div>
+                </div>
+
+                <!-- Quiz completion -->
+                <div class="quiz-completion hidden" id="quiz-completion">
+                    <div class="completion-content">
+                        <div class="completion-icon">🎉</div>
+                        <h2>Hoàn thành Quiz!</h2>
+                        <div class="completion-score">
+                            <div class="score-circle">
+                                <span class="score-number" id="final-score">8</span>
+                                <span class="score-total">/10</span>
+                            </div>
+                        </div>
+                        <p class="completion-message" id="completion-message">Tuyệt vời! Bạn đang tiến bộ!</p>
+                        <div class="completion-actions">
+                            <button class="action-btn primary" id="retry-quiz">Làm lại Quiz</button>
+                            <button class="action-btn secondary" id="back-home-from-quiz">Về trang chủ</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Practice Test Screen -->
+            <section id="test-screen" class="screen">
+                <!-- Test Selection -->
+                <div id="test-selection" class="test-selection">
+                    <h2 class="gradient-text">Đề thi TOEIC Practice 📝</h2>
+                    <p class="subtitle">Luyện tập với đề thi Reading mini - 30</p>
+                    <div class="test-list">
+                        <div class="test-card" data-test-id="full-test-1">
+                            <div class="test-header">
+                                <h3>TOEIC Reading Full Test 1</h3>
+                                <span class="test-duration">⏱️ 75 phút</span>
+                            </div>
+                            <p class="test-description">Đề thi Reading đầy đủ - 100 câu (Format chuẩn TOEIC)</p>
+                            <div class="test-parts">
+                                <span class="test-part">Part 5: Grammar (30 câu)</span>
+                                <span class="test-part">Part 6: Text Completion (16 câu)</span>
+                                <span class="test-part">Part 7: Reading (54 câu)</span>
+                            </div>
+                            <button class="start-test-btn">Bắt đầu thi</button>
+                        </div>
+                    </div>
+
+                    <button class="action-btn secondary" id="back-from-test-selection">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M19 12H5M12 19l-7-7 7-7" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                        </svg>
+                        Về trang chủ
+                    </button>
+                </div>
+
+                <!-- Test Taking -->
+                <div id="test-taking" class="test-taking hidden">
+                    <div class="test-header-bar">
+                        <button class="back-btn" id="exit-test">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M19 12H5M12 19l-7-7 7-7" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+                        </button>
+                        <div class="test-info">
+                            <h3 id="test-name">Practice Test 1</h3>
+                            <span id="test-timer" class="test-timer">⏱️ 30:00</span>
+                        </div>
+                        <div class="test-progress-info">
+                            <span id="test-question-count">Câu 1/22</span>
+                        </div>
+                    </div>
+
+                    <div class="test-content">
+                        <!-- Passage Column (Left) -->
+                        <div class="test-passage-column" id="test-passage-column">
+                            <!-- Will be populated with passage if exists -->
+                        </div>
+
+                        <!-- Question Column (Right) -->
+                        <div class="test-question-column">
+                            <div id="test-question-display" class="test-question-display">
+                                <!-- Will be populated dynamically -->
+                            </div>
+
+                            <div class="test-navigation">
+                                <button class="test-nav-btn" id="prev-test-question">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <path d="M15 18l-6-6 6-6" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round" />
+                                    </svg>
+                                    Câu trước
+                                </button>
+                                <button class="test-nav-btn primary" id="next-test-question">
+                                    Câu sau
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <path d="M9 18l6-6-6-6" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="submit-test-btn" id="submit-test">Nộp bài</button>
+
+                    <!-- Question Palette - placed after submit button on mobile -->
+                    <div class="question-palette">
+                        <div class="palette-header">
+                            <h4>Danh sách câu hỏi</h4>
+                        </div>
+                        <div id="question-palette-grid" class="palette-grid">
+                            <!-- Will be populated dynamically by Parts -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Test Results -->
+                <div id="test-results" class="test-results hidden">
+                    <div class="results-content">
+                        <div class="results-icon">🎯</div>
+                        <h2>Kết quả Practice Test</h2>
+                        <div class="results-score">
+                            <div class="score-display">
+                                <span class="score-number" id="test-score">18</span>
+                                <span class="score-total">/22</span>
+                            </div>
+                            <div class="score-percentage" id="test-percentage">82%</div>
+                        </div>
+
+                        <div class="results-breakdown">
+                            <div class="breakdown-item">
+                                <span class="breakdown-label">Part 5 (Grammar)</span>
+                                <span class="breakdown-score" id="part5-score">8/10</span>
+                            </div>
+                            <div class="breakdown-item">
+                                <span class="breakdown-label">Part 6 (Text Completion)</span>
+                                <span class="breakdown-score" id="part6-score">3/4</span>
+                            </div>
+                            <div class="breakdown-item">
+                                <span class="breakdown-label">Part 7 (Reading)</span>
+                                <span class="breakdown-score" id="part7-score">7/8</span>
+                            </div>
+                        </div>
+
+                        <p class="results-message" id="test-message">Tuyệt vời! Bạn đang tiến bộ!</p>
+
+                        <div class="results-actions">
+                            <button class="action-btn primary" id="review-test">Xem đáp án chi tiết</button>
+                            <button class="action-btn secondary" id="retry-test">Làm lại</button>
+                            <button class="action-btn secondary" id="back-home-from-test">Về trang chủ</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Test Review Screen -->
+                <div id="test-review" class="test-review hidden">
+                    <div class="review-header">
+                        <h2>📋 Xem lại đáp án chi tiết</h2>
+                        <button class="action-btn secondary" id="back-from-review">Quay lại kết quả</button>
+                    </div>
+
+                    <div id="review-content" class="review-content">
+                        <!-- Will be populated dynamically -->
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <button class="nav-item active" data-screen="home-screen">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                </svg>
+                <span>Trang chủ</span>
+            </button>
+
+            <button class="nav-item" data-screen="quiz-screen">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <circle cx="12" cy="12" r="10" stroke-width="2" />
+                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" stroke-width="2" stroke-linecap="round" />
+                    <circle cx="12" cy="17" r="1" fill="currentColor" />
+                </svg>
+                <span>Quiz</span>
+            </button>
+        </nav>
+
+    </div>
+
+    <script src="data.js"></script>
+    <script src="test-data.js"></script>
+    <script src="part7-supplement.js"></script>
+    <script src="part7-triple.js"></script>
+    <script src="app.js"></script>
+    <script src="test-logic.js"></script>
+    <script>
+        // Merge Part 7 supplements into main test data
+        if (typeof part7Additional !== 'undefined' && typeof fullTests !== 'undefined') {
+            const part7Section = fullTests.tests[0].sections.find(s => s.id === 'part7');
+            if (part7Section && part7Section.passages) {
+                // Add single passages
+                part7Section.passages.push(...part7Additional);
+                // Add double passages
+                if (typeof part7DoublePassages !== 'undefined') {
+                    part7Section.passages.push(...part7DoublePassages);
+                }
+                // Add triple passage
+                if (typeof part7TriplePassage !== 'undefined') {
+                    part7Section.passages.push(part7TriplePassage);
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>
+```

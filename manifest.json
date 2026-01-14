@@ -1,0 +1,22 @@
+{
+  "short_name": "TOEIC Master",
+  "name": "TOEIC Vocabulary Master",
+  "icons": [
+    {
+      "src": "https://via.placeholder.com/192.png?text=TOEIC",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "https://via.placeholder.com/512.png?text=TOEIC",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "index.html",
+  "background_color": "#0f0f1a",
+  "display": "standalone",
+  "scope": ".",
+  "theme_color": "#0f0f1a",
+  "orientation": "portrait"
+}
