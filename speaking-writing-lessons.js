@@ -10,9 +10,13 @@ const lessonsData = {
             criteria: "Phát âm (Pronunciation), Ngữ điệu & Trọng âm (Intonation & Stress), Độ trôi chảy (Fluency).",
             strategies: [
                 "Tận dụng 45 giây chuẩn bị để đọc nhẩm, xác định các từ khó phát âm và các cụm danh từ cần ngắt hơi.",
+                "Chuẩn hóa phát âm phụ âm và nguyên âm theo bảng ký tự phiên âm quốc tế IPA.",
+                "Trọng âm từ (Word Stress): Nhấn mạnh nguyên âm của âm tiết mang trọng âm. Hầu hết các danh từ/tính từ 2 âm tiết nhấn âm 1, động từ 2 âm tiết nhấn âm 2.",
                 "Ngắt giọng (Pause) hợp lý: Ngắt ngắn sau các cụm từ ý nghĩa, ngắt dài hơn ở dấu phẩy và dấu chấm.",
                 "Quy tắc ngữ điệu khi liệt kê (A, B, and C): Lên giọng ở các mục trước và xuống giọng ở mục cuối cùng (ví dụ: tables [lên], chairs [lên], and desks [xuống]).",
-                "Phát âm rõ ràng các phụ âm cuối (Ending sounds): đặc biệt là '-s', '-es', '-ed', '-t', '-d'."
+                "Phát âm rõ ràng các phụ âm cuối (Ending sounds): đặc biệt là '-s', '-es', '-ed', '-t', '-d'.",
+                "Phát âm đuôi '-ed': Đọc /id/ sau âm /t/, /d/; đọc /t/ sau phụ âm vô thanh (/s/, /p/, /k/, /f/, /sh/, /ch/); đọc /d/ cho các trường hợp còn lại.",
+                "Phát âm đuôi '-s/es': Đọc /iz/ sau âm rít (/s/, /z/, /sh/, /ch/, /x/); đọc /s/ sau phụ âm vô thanh (/p/, /t/, /k/, /f/, /th/); đọc /z/ cho trường hợp còn lại."
             ],
             templates: [
                 {
@@ -195,8 +199,11 @@ const lessonsData = {
             criteria: "Sử dụng đúng 2 từ khóa gợi ý, Ngữ pháp câu chính xác 100%, Câu mô tả đúng nội dung bức tranh.",
             strategies: [
                 "Bắt buộc phải dùng cả 2 từ gợi ý. Bạn được phép thay đổi dạng thức từ (ví dụ danh từ số ít/nhiều, chia thì động từ, thể bị động/chủ động).",
-                "Nên viết câu phức (Complex sentences) hoặc câu ghép (Compound sentences) bằng cách dùng liên từ như `because`, `although`, `while`, `and`, `but` để kết nối 2 từ gợi ý một cách tự nhiên.",
-                "Luôn kiểm tra kỹ các lỗi ngữ pháp cơ bản: sự hòa hợp chủ-vị, mạo từ (a/an/the), viết hoa chữ đầu câu và dấu chấm cuối câu."
+                "Sử dụng đúng các thì cơ bản (Hiện tại đơn, Hiện tại tiếp diễn, Quá khứ đơn, Tương lai đơn) tùy theo ngữ cảnh của tranh vẽ.",
+                "Nắm vững các dạng của động từ: Danh động từ (V-ing) sau động từ chỉ sở thích/bắt đầu, Động từ nguyên mẫu (To V) sau động từ chỉ dự định/mong muốn.",
+                "Sử dụng câu bị động (Passive voice) khi mô tả vật thể đang được tác động (Ví dụ: The document is being printed).",
+                "Áp dụng cấu trúc câu điều kiện loại 1 (Conditional Type 1) để dự đoán tình huống có thể xảy ra trong tranh (If they finish their work, they will...).",
+                "Nên viết câu phức (Complex sentences) hoặc câu ghép (Compound sentences) bằng cách dùng liên từ như `because`, `although`, `while`, `and`, `but` để kết nối 2 từ gợi ý một cách tự nhiên."
             ],
             templates: [
                 {
@@ -232,6 +239,7 @@ const lessonsData = {
             criteria: "Bố cục email chuẩn xác, Trả lời đầy đủ 2 yêu cầu, Sử dụng từ vựng và ngữ pháp thương mại phù hợp.",
             strategies: [
                 "Bố cục email phải có đầy đủ 4 phần: Lời chào (Dear...) $\rightarrow$ Mục đích viết email $\rightarrow$ Nội dung chính (đáp ứng đủ 2 yêu cầu đề bài) $\rightarrow$ Lời kết & ký tên (Sincerely/Best regards).",
+                "Sử dụng từ vựng thương mại (ESP) liên quan đến: Tài chính (budget, transaction), Tiếp thị (marketing, campaign), Nhân sự (recruit, employee, benefits), Thiết bị văn phòng (photocopier, printer, supplies), Hợp đồng (agreement, term, client).",
                 "Đọc kỹ đề bài để xác định đối tượng nhận email (khách hàng, đồng nghiệp hay sếp) để sử dụng giọng điệu (tone) trang trọng hoặc thân mật phù hợp.",
                 "Với mỗi yêu cầu trong email đề bài, hãy viết riêng biệt từ 1-2 câu để bảo đảm rõ ý và người chấm dễ dàng nhìn thấy."
             ],
@@ -258,9 +266,10 @@ const lessonsData = {
             overview: "Bạn có 1 câu hỏi (Q8). Thời gian làm bài: 30 phút. Mục tiêu: Viết một bài luận tối thiểu 300 từ trình bày ý kiến đồng ý/phản đối về một luận điểm xã hội hoặc công việc.",
             criteria: "Bố cục bài luận chuẩn (Mở - Thân - Kết), Phát triển luận điểm logic và có ví dụ thuyết phục, Sự chính xác của ngữ pháp và vốn từ vựng học thuật.",
             strategies: [
-                "Cấu trúc bài luận bắt buộc phải chia làm 4 đoạn rõ ràng:<br>1. **Introduction** (Mở bài): Dẫn dắt vấn đề và nêu rõ lập trường (đồng ý/phản đối).<br>2. **Body 1** (Thân bài 1): Đưa ra lý do thứ nhất + Ví dụ thực tế hỗ trợ.<br>3. **Body 2** (Thân bài 2): Đưa ra lý do thứ hai + Ví dụ thực tế hỗ trợ.<br>4. **Conclusion** (Kết bài): Tóm tắt lại 2 lý do chính và khẳng định lại ý kiến chủ đạo.",
-                "Sử dụng các từ nối ý trang trọng ở đầu mỗi đoạn (First of all, On the other hand, Consequently, In conclusion).",
-                "Dành ra 2-3 phút cuối cùng để đọc soát lỗi chính tả và dấu câu."
+                "Cấu trúc bài luận bắt buộc phải chia làm 4 đoạn rõ ràng:<br>1. **Introduction** (Mở bài): Nêu chủ đề và lập trường (đồng ý/phản đối).<br>2. **Body 1 & 2** (Thân bài): Đưa ra 2 lý do lớn kèm ví dụ và lập luận logic.<br>3. **Conclusion** (Kết bài): Tóm tắt luận điểm và chốt ý kiến.",
+                "Áp dụng cấu trúc nâng cao (600 - 800+) để ghi điểm tuyệt đối: Câu đảo ngữ (Ví dụ: Not only... but also...), Câu giả định (Ví dụ: It is recommended that [Chủ ngữ] + V nguyên mẫu).",
+                "Sử dụng nhóm từ vựng quản trị cao cấp: Quản lý chuỗi cung ứng (supply chain, logistics), Pháp lý & Tuân thủ (regulation, compliance), An ninh mạng (cybersecurity, security breach), Đa dạng hóa văn hóa doanh nghiệp (DEI - diversity, equity, inclusion).",
+                "Sử dụng các từ nối ý trang trọng ở đầu mỗi đoạn (First of all, On the other hand, Consequently, In conclusion)."
             ],
             templates: [
                 {

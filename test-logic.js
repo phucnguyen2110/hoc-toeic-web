@@ -349,6 +349,29 @@ function submitTest(autoSubmit = false) {
         }
     });
 
+    // Sync result to backend database if logged in
+    if (typeof authState !== 'undefined' && authState.user) {
+        const percentage = Math.round((totalScore / testState.allQuestions.length) * 100);
+        fetch('/api/results', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...getAuthHeader()
+            },
+            body: JSON.stringify({
+                test_id: testState.currentTest.name || testState.currentTest.id,
+                score: totalScore,
+                total: testState.allQuestions.length,
+                percentage: percentage,
+                date: new Date().toLocaleString('vi-VN')
+            })
+        }).then(res => {
+            if (res.ok && typeof loadPracticeHistory === 'function') {
+                loadPracticeHistory();
+            }
+        }).catch(err => console.error('Failed to sync test result to backend:', err));
+    }
+
     // Show results
     showTestResults(totalScore, testState.allQuestions.length, sectionScores, testState.currentTest);
 }
@@ -499,6 +522,19 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('test-review').classList.add('hidden');
         document.getElementById('test-results').classList.remove('hidden');
     });
+
+    // Review filter buttons logic
+    document.querySelectorAll('.review-filters .filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Remove active class from all buttons
+            document.querySelectorAll('.review-filters .filter-btn').forEach(b => b.classList.remove('active'));
+            // Add active class to clicked button
+            this.classList.add('active');
+            
+            const filterValue = this.dataset.filter; // 'all', 'incorrect', 'correct'
+            filterReviewQuestions(filterValue);
+        });
+    });
 });
 
 // ============================================
@@ -586,7 +622,37 @@ function showReviewScreen() {
     document.getElementById('test-results').classList.add('hidden');
     document.getElementById('test-review').classList.remove('hidden');
 
+    // Reset filter buttons to default 'all'
+    document.querySelectorAll('.review-filters .filter-btn').forEach(b => {
+        if (b.dataset.filter === 'all') {
+            b.classList.add('active');
+        } else {
+            b.classList.remove('active');
+        }
+    });
+
     renderReviewContent();
+}
+
+function filterReviewQuestions(filterValue) {
+    const questions = document.querySelectorAll('.review-content .review-question');
+    questions.forEach(q => {
+        if (filterValue === 'all') {
+            q.style.display = 'block';
+        } else if (filterValue === 'incorrect') {
+            if (q.classList.contains('incorrect')) {
+                q.style.display = 'block';
+            } else {
+                q.style.display = 'none';
+            }
+        } else if (filterValue === 'correct') {
+            if (q.classList.contains('correct')) {
+                q.style.display = 'block';
+            } else {
+                q.style.display = 'none';
+            }
+        }
+    });
 }
 
 function renderReviewContent() {

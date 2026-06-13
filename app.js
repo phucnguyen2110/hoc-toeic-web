@@ -37,6 +37,11 @@ function saveProgress() {
     };
     localStorage.setItem('toeic_progress', JSON.stringify(data));
     updateProgressStats();
+    
+    // Sync to backend database if logged in
+    if (typeof uploadLocalProgressToBackend === 'function') {
+        uploadLocalProgressToBackend();
+    }
 }
 
 // ============================================

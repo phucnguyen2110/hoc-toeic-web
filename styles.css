@@ -1445,3 +1445,144 @@ body {
         padding: var(--spacing-sm) !important;
     }
 }
+
+/* ========================================
+   AUTHENTICATION & PROFILE STYLES
+   ======================================== */
+
+#user-profile-container {
+    margin-right: var(--spacing-md);
+}
+
+.user-btn {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all var(--transition-base);
+}
+
+.user-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 12px rgba(102, 126, 234, 0.3);
+}
+
+.dropdown-menu button:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.auth-modal {
+    animation: authModalFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    background: #1e1e30 !important;
+}
+
+@keyframes authModalFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.modal-close:hover {
+    color: var(--color-text-primary) !important;
+}
+
+/* ========================================
+   HISTORY DASHBOARD STYLES
+   ======================================== */
+
+.history-card {
+    box-shadow: var(--shadow-md);
+}
+
+.history-row {
+    transition: background var(--transition-base);
+}
+
+.history-row:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.status-badge.success {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.status-badge.warning {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.status-badge.error {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.status-badge.primary {
+    background: rgba(102, 126, 234, 0.15);
+    color: #818cf8;
+    border: 1px solid rgba(102, 126, 234, 0.3);
+}
+
+.status-badge.accent {
+    background: rgba(245, 87, 108, 0.15);
+    color: #f472b6;
+    border: 1px solid rgba(245, 87, 108, 0.3);
+}
+
+/* ========================================
+   REVIEW FILTER STYLES
+   ======================================== */
+
+.review-filters .filter-btn:hover {
+    border-color: var(--color-border-hover) !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+}
+
+.review-filters .filter-btn.active {
+    background: var(--primary-gradient) !important;
+    color: white !important;
+    border-color: transparent !important;
+    box-shadow: 0 4px 6px rgba(102, 126, 234, 0.2);
+}
+
+/* ========================================
+   AI ASR SPEECH RECOGNITION WORD COLORS
+   ======================================== */
+
+.asr-word-correct {
+    color: #10b981; /* Green */
+    font-weight: 700;
+}
+
+.asr-word-missing {
+    color: #ef4444; /* Red */
+    text-decoration: line-through;
+    opacity: 0.6;
+}
+
+.asr-word-extra {
+    color: #818cf8; /* Light blue/indigo for extra spoken words */
+    font-weight: 500;
+}
+
+/* ========================================
+   DRAFT INDICATOR STYLE & ANIMATION
+   ======================================== */
+
+.draft-status-badge {
+    animation: draftBlink 2s ease-in-out infinite alternate;
+}
+
+@keyframes draftBlink {
+    0% {
+        box-shadow: 0 0 4px rgba(16, 185, 129, 0.1);
+    }
+    100% {
+        box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+    }
+}

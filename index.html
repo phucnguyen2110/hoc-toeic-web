@@ -59,7 +59,6 @@
             <!-- Home Screen -->
             <section id="home-screen" class="screen active">
                 <div class="welcome-section">
-                    <h2 class="gradient-text">Chinh phục TOEIC 700+ trong 2 tuần! 🚀</h2>
                     <p class="subtitle">Học từ vựng thông minh với flashcard và quiz theo chủ đề</p>
 
                     <!-- Progress Card -->
@@ -102,20 +101,25 @@
                             <div class="skill-card" id="start-speaking">
                                 <div class="skill-icon">🗣️</div>
                                 <h4>TOEIC Speaking</h4>
-                                <p class="skill-description">Luyện 11 câu hỏi chuẩn (Đọc to, Mô tả tranh, Trả lời câu hỏi, Thuyết trình)</p>
+                                <p class="skill-description">Luyện 11 câu hỏi chuẩn (Đọc to, Mô tả tranh, Trả lời câu
+                                    hỏi, Thuyết trình)</p>
                                 <button class="start-skill-btn">Luyện tập</button>
                             </div>
                             <div class="skill-card" id="start-writing">
                                 <div class="skill-icon">✍️</div>
                                 <h4>TOEIC Writing</h4>
-                                <p class="skill-description">Luyện 8 câu hỏi viết (Viết câu theo tranh, Trả lời email, Viết luận luận điểm)</p>
+                                <p class="skill-description">Luyện 8 câu hỏi viết (Viết câu theo tranh, Trả lời email,
+                                    Viết luận luận điểm)</p>
                                 <button class="start-skill-btn">Luyện tập</button>
                             </div>
-                            <div class="skill-card" id="start-lessons" style="background: linear-gradient(135deg, rgba(245, 147, 251, 0.05) 0%, rgba(245, 87, 108, 0.05) 100%); border-color: rgba(245, 87, 108, 0.2);">
+                            <div class="skill-card" id="start-lessons"
+                                style="background: linear-gradient(135deg, rgba(245, 147, 251, 0.05) 0%, rgba(245, 87, 108, 0.05) 100%); border-color: rgba(245, 87, 108, 0.2);">
                                 <div class="skill-icon">📚</div>
                                 <h4>Chiến thuật & Mẫu câu</h4>
-                                <p class="skill-description">Học chiến thuật làm bài, từ vựng ăn điểm và các bộ khung câu trả lời mẫu Speaking & Writing.</p>
-                                <button class="start-skill-btn" style="background: var(--secondary-gradient);">Học lý thuyết</button>
+                                <p class="skill-description">Học chiến thuật làm bài, từ vựng ăn điểm và các bộ khung
+                                    câu trả lời mẫu Speaking & Writing.</p>
+                                <button class="start-skill-btn" style="background: var(--secondary-gradient);">Học lý
+                                    thuyết</button>
                             </div>
                         </div>
                     </div>
@@ -146,6 +150,18 @@
                             </svg>
                             Đề thi TOEIC
                         </button>
+                    </div>
+
+                    <!-- Lịch sử học tập / Dashboard -->
+                    <div class="topics-section hidden" id="history-dashboard-section"
+                        style="margin-top: var(--spacing-xl);">
+                        <h3>📊 Lịch sử luyện tập & thi thử</h3>
+                        <div class="history-card"
+                            style="background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-lg); overflow: hidden;">
+                            <div id="history-list">
+                                <!-- Will be populated by JS -->
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -402,6 +418,20 @@
                         <button class="action-btn secondary" id="back-from-review">Quay lại kết quả</button>
                     </div>
 
+                    <!-- Review Filters -->
+                    <div class="review-filters"
+                        style="display: flex; gap: 10px; margin-bottom: 1.5rem; justify-content: center; padding: 0 1rem;">
+                        <button class="filter-btn active" data-filter="all"
+                            style="padding: 8px 16px; border: 1px solid var(--color-border); border-radius: 20px; background: var(--color-bg-card); color: var(--color-text-primary); font-weight: 600; cursor: pointer; transition: all var(--transition-base);">Tất
+                            cả câu hỏi</button>
+                        <button class="filter-btn" data-filter="incorrect"
+                            style="padding: 8px 16px; border: 1px solid var(--color-border); border-radius: 20px; background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); color: #ef4444; font-weight: 600; cursor: pointer; transition: all var(--transition-base);">Chỉ
+                            câu sai</button>
+                        <button class="filter-btn" data-filter="correct"
+                            style="padding: 8px 16px; border: 1px solid var(--color-border); border-radius: 20px; background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3); color: #10b981; font-weight: 600; cursor: pointer; transition: all var(--transition-base);">Chỉ
+                            câu đúng</button>
+                    </div>
+
                     <div id="review-content" class="review-content">
                         <!-- Will be populated dynamically -->
                     </div>
@@ -422,62 +452,97 @@
                 </div>
 
                 <div class="test-taking">
-                    <div class="sp-directions-box" id="sp-directions" style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--color-border); padding: 1rem; border-radius: var(--radius-md); font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-bottom: 1.5rem; line-height: 1.5;">Directions will be shown here.</div>
-                    
+                    <div class="sp-directions-box" id="sp-directions"
+                        style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--color-border); padding: 1rem; border-radius: var(--radius-md); font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-bottom: 1.5rem; line-height: 1.5;">
+                        Directions will be shown here.</div>
+
                     <div class="test-content">
                         <!-- Left/Media Column -->
                         <div class="test-passage-column">
                             <div id="sp-image-container" class="question-image hidden">
-                                <img id="sp-question-image" src="" alt="Speaking Question Image" style="max-width: 100%; border-radius: 8px;">
+                                <img id="sp-question-image" src="" alt="Speaking Question Image"
+                                    style="max-width: 100%; border-radius: 8px;">
                             </div>
                             <div id="sp-table-container" class="hidden">
                                 <!-- Dynamic table content -->
                             </div>
-                            <div id="sp-text-container" class="sp-text-prompt hidden" style="font-size: var(--font-size-lg); font-weight: 600; line-height: 1.6; padding: 1.5rem; background: var(--color-bg-card); border-radius: var(--radius-md); border-left: 4px solid var(--color-primary);">
+                            <div id="sp-text-container" class="sp-text-prompt hidden"
+                                style="font-size: var(--font-size-lg); font-weight: 600; line-height: 1.6; padding: 1.5rem; background: var(--color-bg-card); border-radius: var(--radius-md); border-left: 4px solid var(--color-primary);">
                                 <!-- Prompt text -->
                             </div>
                         </div>
 
                         <!-- Right/Timer/Recording Column -->
                         <div class="test-question-column">
-                            <div class="sp-timer-card" style="background: var(--color-bg-card); border: 1px solid var(--color-border); padding: 1.5rem; border-radius: var(--radius-lg); text-align: center;">
-                                <div class="sp-timer-label" id="sp-timer-status" style="font-size: var(--font-size-sm); color: var(--color-text-secondary); text-transform: uppercase; margin-bottom: 0.5rem;">Sẵn sàng</div>
-                                <div class="sp-timer-text-idle" id="sp-timer-display" style="font-size: var(--font-size-xl); font-weight: 700; transition: all var(--transition-base);">--:--</div>
-                                <button class="action-btn primary" id="sp-start-btn" style="width: 100%; margin-top: 1rem;">
+                            <div class="sp-timer-card"
+                                style="background: var(--color-bg-card); border: 1px solid var(--color-border); padding: 1.5rem; border-radius: var(--radius-lg); text-align: center;">
+                                <div class="sp-timer-label" id="sp-timer-status"
+                                    style="font-size: var(--font-size-sm); color: var(--color-text-secondary); text-transform: uppercase; margin-bottom: 0.5rem;">
+                                    Sẵn sàng</div>
+                                <div class="sp-timer-text-idle" id="sp-timer-display"
+                                    style="font-size: var(--font-size-xl); font-weight: 700; transition: all var(--transition-base);">
+                                    --:--</div>
+                                <button class="action-btn primary" id="sp-start-btn"
+                                    style="width: 100%; margin-top: 1rem;">
                                     Bắt đầu Chuẩn bị & Trả lời
                                 </button>
                             </div>
 
-                            <div class="sp-recording-section" style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+                            <div class="sp-recording-section"
+                                style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
                                 <div style="display: flex; gap: 1rem;">
                                     <button class="action-btn secondary" id="sp-record-btn" disabled style="flex: 1;">
                                         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                            <circle cx="12" cy="12" r="8"/>
+                                            <circle cx="12" cy="12" r="8" />
                                         </svg>
                                         Ghi âm tự do
                                     </button>
                                     <button class="action-btn secondary" id="sp-play-btn" disabled style="flex: 1;">
                                         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                            <polygon points="5 3 19 12 5 21 5 3"/>
+                                            <polygon points="5 3 19 12 5 21 5 3" />
                                         </svg>
                                         Nghe lại bài nói
                                     </button>
                                 </div>
                                 <audio id="speaking-playback" controls class="hidden" style="width: 100%;"></audio>
+                                <div id="sp-speech-transcript-box" class="sp-speech-transcript-box hidden"
+                                    style="margin-top: 1rem; padding: 1rem; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--color-border); border-radius: var(--radius-md);">
+                                    <h5
+                                        style="color: var(--color-primary); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; font-size: var(--font-size-sm); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0;">
+                                        <span>🎙️ Nhận diện phát âm AI (ASR):</span>
+                                    </h5>
+                                    <div id="sp-speech-text"
+                                        style="font-size: var(--font-size-base); line-height: 1.6; color: var(--color-text-secondary); min-height: 24px; font-style: italic; margin-bottom: 0.5rem;">
+                                        Đang nghe giọng đọc của bạn...
+                                    </div>
+                                    <div id="sp-speech-comparison"
+                                        style="font-size: var(--font-size-base); line-height: 1.6; margin-top: 0.75rem; border-top: 1px dashed var(--color-border); padding-top: 0.75rem;"
+                                        class="hidden">
+                                        <!-- Will show green/red colored words -->
+                                    </div>
+                                </div>
                                 <button class="action-btn secondary" id="sp-show-answer-btn" style="width: 100%;">
                                     Xem đáp án mẫu & Gợi ý
                                 </button>
                             </div>
 
                             <!-- Sample Answer Card -->
-                            <div id="sp-sample-card" class="sp-sample-card hidden" style="margin-top: 1.5rem; padding: 1.5rem; background: var(--color-bg-tertiary); border: 1px solid var(--color-border); border-radius: var(--radius-md);">
+                            <div id="sp-sample-card" class="sp-sample-card hidden"
+                                style="margin-top: 1.5rem; padding: 1.5rem; background: var(--color-bg-tertiary); border: 1px solid var(--color-border); border-radius: var(--radius-md);">
                                 <h4 style="color: var(--color-primary); margin-bottom: 0.5rem;">🗣️ Bài mẫu:</h4>
-                                <p id="sp-sample-text" style="font-size: var(--font-size-base); line-height: 1.6; color: var(--color-text-primary); margin-bottom: 1rem;"></p>
-                                <button class="action-btn secondary" id="sp-speak-sample-btn" style="padding: var(--spacing-sm) var(--spacing-md); font-size: var(--font-size-sm); margin-bottom: 1rem; width: 100%;">
+                                <p id="sp-sample-text"
+                                    style="font-size: var(--font-size-base); line-height: 1.6; color: var(--color-text-primary); margin-bottom: 1rem;">
+                                </p>
+                                <button class="action-btn secondary" id="sp-speak-sample-btn"
+                                    style="padding: var(--spacing-sm) var(--spacing-md); font-size: var(--font-size-sm); margin-bottom: 1rem; width: 100%;">
                                     🔊 Nghe phát âm mẫu
                                 </button>
-                                <h4 style="color: var(--color-accent); margin-bottom: 0.5rem; border-top: 1px solid var(--color-border); padding-top: 1rem;">💡 Gợi ý làm bài:</h4>
-                                <p id="sp-tips-text" style="font-size: var(--font-size-sm); line-height: 1.5; color: var(--color-text-secondary);"></p>
+                                <h4
+                                    style="color: var(--color-accent); margin-bottom: 0.5rem; border-top: 1px solid var(--color-border); padding-top: 1rem;">
+                                    💡 Gợi ý làm bài:</h4>
+                                <p id="sp-tips-text"
+                                    style="font-size: var(--font-size-sm); line-height: 1.5; color: var(--color-text-secondary);">
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -485,14 +550,16 @@
                     <div class="test-navigation" style="margin-top: 2rem;">
                         <button class="test-nav-btn" id="sp-prev-btn">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path d="M15 18l-6-6 6-6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                <path d="M15 18l-6-6 6-6" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" />
                             </svg>
                             Câu trước
                         </button>
                         <button class="test-nav-btn primary" id="sp-next-btn">
                             Câu sau
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path d="M9 18l6-6-6-6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                <path d="M9 18l6-6-6-6" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" />
                             </svg>
                         </button>
                     </div>
@@ -513,84 +580,124 @@
                 </div>
 
                 <div class="test-taking">
-                    <div class="sp-directions-box" id="wr-directions" style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--color-border); padding: 1rem; border-radius: var(--radius-md); font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-bottom: 1.5rem; line-height: 1.5;">Directions will be shown here.</div>
-                    
+                    <div class="sp-directions-box" id="wr-directions"
+                        style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--color-border); padding: 1rem; border-radius: var(--radius-md); font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-bottom: 1.5rem; line-height: 1.5;">
+                        Directions will be shown here.</div>
+
                     <div class="test-content">
                         <!-- Left/Prompt Column -->
                         <div class="test-passage-column">
                             <div id="wr-image-container" class="question-image hidden">
-                                <img id="wr-question-image" src="" alt="Writing Question Image" style="max-width: 100%; border-radius: 8px;">
+                                <img id="wr-question-image" src="" alt="Writing Question Image"
+                                    style="max-width: 100%; border-radius: 8px;">
                             </div>
-                            <div id="wr-words-container" class="wr-words-prompt hidden" style="margin-top: 1rem; font-size: var(--font-size-base); color: var(--color-text-primary); padding: var(--spacing-md); background: var(--color-bg-card); border-radius: var(--radius-sm); border: 1px dashed var(--color-border);">
+                            <div id="wr-words-container" class="wr-words-prompt hidden"
+                                style="margin-top: 1rem; font-size: var(--font-size-base); color: var(--color-text-primary); padding: var(--spacing-md); background: var(--color-bg-card); border-radius: var(--radius-sm); border: 1px dashed var(--color-border);">
                                 <!-- Word keywords -->
                             </div>
                             <div id="wr-email-container" class="hidden" style="margin-top: 1rem;">
                                 <!-- Email template -->
                             </div>
-                            <div id="wr-text-container" class="sp-text-prompt hidden" style="font-size: var(--font-size-lg); font-weight: 600; line-height: 1.6; padding: 1.5rem; background: var(--color-bg-card); border-radius: var(--radius-md); border-left: 4px solid var(--color-accent);">
+                            <div id="wr-text-container" class="sp-text-prompt hidden"
+                                style="font-size: var(--font-size-lg); font-weight: 600; line-height: 1.6; padding: 1.5rem; background: var(--color-bg-card); border-radius: var(--radius-md); border-left: 4px solid var(--color-accent);">
                                 <!-- Essay prompt -->
                             </div>
                         </div>
 
                         <!-- Right/Editor Column -->
                         <div class="test-question-column">
-                            <div class="wr-editor-card" style="background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+                            <div class="wr-editor-card"
+                                style="background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
                                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <div class="sp-timer-label" id="wr-timer-status" style="font-size: var(--font-size-sm); color: var(--color-text-secondary); text-transform: uppercase;">Thời gian làm bài</div>
-                                    <div id="wr-timer-display" style="font-size: var(--font-size-xl); font-weight: 700;">--:--</div>
+                                    <div class="sp-timer-label" id="wr-timer-status"
+                                        style="font-size: var(--font-size-sm); color: var(--color-text-secondary); text-transform: uppercase;">
+                                        Thời gian làm bài</div>
+                                    <div id="wr-timer-display"
+                                        style="font-size: var(--font-size-xl); font-weight: 700;">--:--</div>
                                 </div>
                                 <button class="action-btn primary" id="wr-start-timer-btn" style="width: 100%;">
                                     ⏱️ Bắt đầu đếm ngược thời gian
                                 </button>
-                                
-                                <textarea id="wr-input-area" style="width: 100%; min-height: 200px; background: var(--color-bg-primary); border: 1px solid var(--color-border); border-radius: var(--radius-sm); color: var(--color-text-primary); padding: var(--spacing-md); font-family: var(--font-family); font-size: var(--font-size-base); line-height: 1.6; resize: vertical;" placeholder="Nhập câu trả lời của bạn tại đây..."></textarea>
-                                
-                                <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-                                     <div id="wr-word-count" style="font-size: var(--font-size-sm); color: var(--color-text-secondary); font-weight: 600;">Số từ: 0</div>
-                                     <div style="display: flex; gap: 0.5rem;">
-                                         <button class="action-btn secondary" id="wr-show-answer-btn" style="padding: var(--spacing-sm) var(--spacing-md); font-size: var(--font-size-sm);">
-                                             Xem bài mẫu & Gợi ý
-                                         </button>
-                                         <button class="action-btn primary" id="wr-submit-btn" style="padding: var(--spacing-sm) var(--spacing-md); font-size: var(--font-size-sm); background: var(--success-gradient); color: white;">
-                                             Chấm điểm
-                                         </button>
-                                     </div>
-                                 </div>
-                             </div>
 
-                             <!-- Auto Grade Result Card -->
-                             <div id="wr-result-card" class="wr-result-card hidden" style="margin-top: 1.5rem; padding: 1.5rem; background: var(--color-bg-tertiary); border: 1px solid var(--color-border); border-radius: var(--radius-md); transition: all var(--transition-base);">
-                                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--color-border); padding-bottom: 0.75rem; margin-bottom: 1rem;">
-                                     <h4 style="color: var(--color-success); margin: 0; display: flex; align-items: center; gap: 0.5rem;">
-                                         🎯 Kết quả chấm điểm tự động
-                                     </h4>
-                                     <div id="wr-score-badge" style="background: var(--success-gradient); color: white; padding: 4px 12px; border-radius: 20px; font-weight: 700; font-size: var(--font-size-lg); box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);">
-                                         0/200
-                                     </div>
-                                 </div>
-                                 
-                                 <div class="wr-report-section" style="margin-bottom: 1rem;">
-                                     <h5 style="color: var(--color-primary-light); margin-bottom: 0.5rem;">📋 Báo cáo tiêu chí:</h5>
-                                     <ul id="wr-report-list" style="list-style-type: none; padding-left: 0; display: flex; flex-direction: column; gap: 0.5rem; font-size: var(--font-size-sm);">
-                                         <!-- Will be populated by JS -->
-                                     </ul>
-                                 </div>
+                                <div id="wr-draft-status" class="draft-status-badge hidden"
+                                    style="font-size: var(--font-size-xs); font-weight: 600; padding: 6px 12px; background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 4px; display: inline-flex; align-items: center; gap: 6px; margin-top: 0.5rem; margin-bottom: 0.5rem;">
+                                    💾 Đã tự động khôi phục bản thảo nháp
+                                </div>
 
-                                 <div class="wr-feedback-section" style="border-top: 1px dashed var(--color-border); padding-top: 1rem;">
-                                     <h5 style="color: var(--color-accent); margin-bottom: 0.5rem;">💡 Nhận xét & Đề xuất cải thiện:</h5>
-                                     <p id="wr-feedback-text" style="font-size: var(--font-size-sm); line-height: 1.5; color: var(--color-text-secondary); margin: 0;"></p>
-                                 </div>
-                             </div>
+                                <textarea id="wr-input-area"
+                                    style="width: 100%; min-height: 200px; background: var(--color-bg-primary); border: 1px solid var(--color-border); border-radius: var(--radius-sm); color: var(--color-text-primary); padding: var(--spacing-md); font-family: var(--font-family); font-size: var(--font-size-base); line-height: 1.6; resize: vertical;"
+                                    placeholder="Nhập câu trả lời của bạn tại đây..."></textarea>
+
+                                <div
+                                    style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                                    <div id="wr-word-count"
+                                        style="font-size: var(--font-size-sm); color: var(--color-text-secondary); font-weight: 600;">
+                                        Số từ: 0</div>
+                                    <div style="display: flex; gap: 0.5rem;">
+                                        <button class="action-btn secondary" id="wr-show-answer-btn"
+                                            style="padding: var(--spacing-sm) var(--spacing-md); font-size: var(--font-size-sm);">
+                                            Xem bài mẫu & Gợi ý
+                                        </button>
+                                        <button class="action-btn primary" id="wr-submit-btn"
+                                            style="padding: var(--spacing-sm) var(--spacing-md); font-size: var(--font-size-sm); background: var(--success-gradient); color: white;">
+                                            Chấm điểm
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Auto Grade Result Card -->
+                            <div id="wr-result-card" class="wr-result-card hidden"
+                                style="margin-top: 1.5rem; padding: 1.5rem; background: var(--color-bg-tertiary); border: 1px solid var(--color-border); border-radius: var(--radius-md); transition: all var(--transition-base);">
+                                <div
+                                    style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--color-border); padding-bottom: 0.75rem; margin-bottom: 1rem;">
+                                    <h4
+                                        style="color: var(--color-success); margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                                        🎯 Kết quả chấm điểm tự động
+                                    </h4>
+                                    <div id="wr-score-badge"
+                                        style="background: var(--success-gradient); color: white; padding: 4px 12px; border-radius: 20px; font-weight: 700; font-size: var(--font-size-lg); box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);">
+                                        0/200
+                                    </div>
+                                </div>
+
+                                <div class="wr-report-section" style="margin-bottom: 1rem;">
+                                    <h5 style="color: var(--color-primary-light); margin-bottom: 0.5rem;">📋 Báo cáo
+                                        tiêu chí:</h5>
+                                    <ul id="wr-report-list"
+                                        style="list-style-type: none; padding-left: 0; display: flex; flex-direction: column; gap: 0.5rem; font-size: var(--font-size-sm);">
+                                        <!-- Will be populated by JS -->
+                                    </ul>
+                                </div>
+
+                                <div class="wr-feedback-section"
+                                    style="border-top: 1px dashed var(--color-border); padding-top: 1rem;">
+                                    <h5 style="color: var(--color-accent); margin-bottom: 0.5rem;">💡 Nhận xét & Đề xuất
+                                        cải thiện:</h5>
+                                    <p id="wr-feedback-text"
+                                        style="font-size: var(--font-size-sm); line-height: 1.5; color: var(--color-text-secondary); margin: 0;">
+                                    </p>
+                                </div>
+                            </div>
 
                             <!-- Sample Answer Card -->
-                            <div id="wr-sample-card" class="sp-sample-card hidden" style="margin-top: 1.5rem; padding: 1.5rem; background: var(--color-bg-tertiary); border: 1px solid var(--color-border); border-radius: var(--radius-md);">
-                                <h4 style="color: var(--color-primary); margin-bottom: 0.5rem;">✍️ Bài mẫu tham khảo:</h4>
-                                <p id="wr-sample-text" style="font-size: var(--font-size-base); line-height: 1.6; color: var(--color-text-primary); margin-bottom: 1rem; white-space: pre-wrap;"></p>
-                                <button class="action-btn secondary" id="wr-speak-sample-btn" style="padding: var(--spacing-sm) var(--spacing-md); font-size: var(--font-size-sm); margin-bottom: 1rem; width: 100%;">
+                            <div id="wr-sample-card" class="sp-sample-card hidden"
+                                style="margin-top: 1.5rem; padding: 1.5rem; background: var(--color-bg-tertiary); border: 1px solid var(--color-border); border-radius: var(--radius-md);">
+                                <h4 style="color: var(--color-primary); margin-bottom: 0.5rem;">✍️ Bài mẫu tham khảo:
+                                </h4>
+                                <p id="wr-sample-text"
+                                    style="font-size: var(--font-size-base); line-height: 1.6; color: var(--color-text-primary); margin-bottom: 1rem; white-space: pre-wrap;">
+                                </p>
+                                <button class="action-btn secondary" id="wr-speak-sample-btn"
+                                    style="padding: var(--spacing-sm) var(--spacing-md); font-size: var(--font-size-sm); margin-bottom: 1rem; width: 100%;">
                                     🔊 Nghe bài mẫu
                                 </button>
-                                <h4 style="color: var(--color-accent); margin-bottom: 0.5rem; border-top: 1px solid var(--color-border); padding-top: 1rem;">💡 Gợi ý làm bài:</h4>
-                                <p id="wr-tips-text" style="font-size: var(--font-size-sm); line-height: 1.5; color: var(--color-text-secondary);"></p>
+                                <h4
+                                    style="color: var(--color-accent); margin-bottom: 0.5rem; border-top: 1px solid var(--color-border); padding-top: 1rem;">
+                                    💡 Gợi ý làm bài:</h4>
+                                <p id="wr-tips-text"
+                                    style="font-size: var(--font-size-sm); line-height: 1.5; color: var(--color-text-secondary);">
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -598,14 +705,16 @@
                     <div class="test-navigation" style="margin-top: 2rem;">
                         <button class="test-nav-btn" id="wr-prev-btn">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path d="M15 18l-6-6 6-6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                <path d="M15 18l-6-6 6-6" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" />
                             </svg>
                             Câu trước
                         </button>
                         <button class="test-nav-btn primary" id="wr-next-btn">
                             Câu sau
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path d="M9 18l6-6-6-6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                <path d="M9 18l6-6-6-6" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" />
                             </svg>
                         </button>
                     </div>
@@ -625,13 +734,17 @@
                     <div class="card-counter" style="min-width: unset; width: auto; font-size: 1.5rem;">📚</div>
                 </div>
 
-                <div class="lessons-container" style="max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 1.5rem;">
+                <div class="lessons-container"
+                    style="max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 1.5rem;">
                     <!-- Skill Tabs Selector -->
-                    <div class="lessons-tabs" style="display: flex; background: var(--color-bg-card); padding: 6px; border-radius: var(--radius-md); border: 1px solid var(--color-border); justify-content: center; gap: 10px; margin-bottom: 1rem;">
-                        <button class="lessons-tab-btn active" id="tab-speaking-lessons" style="flex: 1; padding: 12px; border: none; border-radius: var(--radius-sm); font-weight: 600; cursor: pointer; transition: all var(--transition-base); font-family: var(--font-family);">
+                    <div class="lessons-tabs"
+                        style="display: flex; background: var(--color-bg-card); padding: 6px; border-radius: var(--radius-md); border: 1px solid var(--color-border); justify-content: center; gap: 10px; margin-bottom: 1rem;">
+                        <button class="lessons-tab-btn active" id="tab-speaking-lessons"
+                            style="flex: 1; padding: 12px; border: none; border-radius: var(--radius-sm); font-weight: 600; cursor: pointer; transition: all var(--transition-base); font-family: var(--font-family);">
                             🗣️ Speaking Guide
                         </button>
-                        <button class="lessons-tab-btn" id="tab-writing-lessons" style="flex: 1; padding: 12px; border: none; border-radius: var(--radius-sm); font-weight: 600; cursor: pointer; transition: all var(--transition-base); font-family: var(--font-family);">
+                        <button class="lessons-tab-btn" id="tab-writing-lessons"
+                            style="flex: 1; padding: 12px; border: none; border-radius: var(--radius-sm); font-weight: 600; cursor: pointer; transition: all var(--transition-base); font-family: var(--font-family);">
                             ✍️ Writing Guide
                         </button>
                     </div>
@@ -677,6 +790,7 @@
     <script src="speaking-writing-data.js?v=1.3"></script>
     <script src="speaking-writing-lessons.js?v=1.3"></script>
     <script src="speaking-writing-logic.js?v=1.3"></script>
+    <script src="auth.js?v=1.4"></script>
     <script>
         // Merge Part 7 supplements into main test data
         if (typeof part7Additional !== 'undefined' && typeof fullTests !== 'undefined') {
@@ -695,6 +809,96 @@
             }
         }
     </script>
+
+    <!-- Authentication Modals -->
+    <!-- Login Modal -->
+    <div class="auth-modal-overlay" id="login-modal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px); z-index: 9999; justify-content: center; align-items: center; padding: 20px;">
+        <div class="auth-modal"
+            style="background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-lg); width: 100%; max-width: 400px; overflow: hidden; box-shadow: var(--shadow-lg);">
+            <div class="modal-header"
+                style="padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--color-border);">
+                <h3 style="margin: 0; font-size: 1.25rem; font-weight: 700; color: var(--color-text-primary);">Đăng nhập
+                    tài khoản</h3>
+                <button class="modal-close"
+                    style="background: none; border: none; font-size: 1.5rem; color: var(--color-text-secondary); cursor: pointer;">&times;</button>
+            </div>
+            <form id="login-form" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+                <div id="login-error"
+                    style="display: none; color: #ef4444; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); padding: 10px; border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 500;">
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <label style="font-size: 0.9rem; font-weight: 600; color: var(--color-text-primary);">Tên tài
+                        khoản</label>
+                    <input type="text" name="username" required
+                        style="padding: 10px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-bg-primary); color: var(--color-text-primary); font-family: var(--font-family);"
+                        placeholder="Nhập tên tài khoản...">
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <label style="font-size: 0.9rem; font-weight: 600; color: var(--color-text-primary);">Mật
+                        khẩu</label>
+                    <input type="password" name="password" required
+                        style="padding: 10px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-bg-primary); color: var(--color-text-primary); font-family: var(--font-family);"
+                        placeholder="Nhập mật khẩu...">
+                </div>
+                <button type="submit" class="action-btn primary"
+                    style="width: 100%; margin-top: 0.5rem; background: var(--primary-gradient);">Đăng nhập</button>
+                <div
+                    style="text-align: center; font-size: 0.9rem; color: var(--color-text-secondary); margin-top: 0.5rem;">
+                    Chưa có tài khoản? <a href="#" id="link-to-register"
+                        style="color: var(--color-primary); font-weight: 600; text-decoration: none;">Đăng ký ngay</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div class="auth-modal-overlay" id="register-modal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px); z-index: 9999; justify-content: center; align-items: center; padding: 20px;">
+        <div class="auth-modal"
+            style="background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-lg); width: 100%; max-width: 400px; overflow: hidden; box-shadow: var(--shadow-lg);">
+            <div class="modal-header"
+                style="padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--color-border);">
+                <h3 style="margin: 0; font-size: 1.25rem; font-weight: 700; color: var(--color-text-primary);">Đăng ký
+                    tài khoản</h3>
+                <button class="modal-close"
+                    style="background: none; border: none; font-size: 1.5rem; color: var(--color-text-secondary); cursor: pointer;">&times;</button>
+            </div>
+            <form id="register-form" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+                <div id="register-error"
+                    style="display: none; color: #ef4444; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); padding: 10px; border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 500;">
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <label style="font-size: 0.9rem; font-weight: 600; color: var(--color-text-primary);">Tên tài
+                        khoản</label>
+                    <input type="text" name="username" required
+                        style="padding: 10px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-bg-primary); color: var(--color-text-primary); font-family: var(--font-family);"
+                        placeholder="Tạo tên tài khoản...">
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <label style="font-size: 0.9rem; font-weight: 600; color: var(--color-text-primary);">Mật
+                        khẩu</label>
+                    <input type="password" name="password" required
+                        style="padding: 10px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-bg-primary); color: var(--color-text-primary); font-family: var(--font-family);"
+                        placeholder="Tạo mật khẩu...">
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <label style="font-size: 0.9rem; font-weight: 600; color: var(--color-text-primary);">Xác nhận mật
+                        khẩu</label>
+                    <input type="password" name="confirmPassword" required
+                        style="padding: 10px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-bg-primary); color: var(--color-text-primary); font-family: var(--font-family);"
+                        placeholder="Nhập lại mật khẩu...">
+                </div>
+                <button type="submit" class="action-btn primary"
+                    style="width: 100%; margin-top: 0.5rem; background: var(--primary-gradient);">Đăng ký</button>
+                <div
+                    style="text-align: center; font-size: 0.9rem; color: var(--color-text-secondary); margin-top: 0.5rem;">
+                    Đã có tài khoản? <a href="#" id="link-to-login"
+                        style="color: var(--color-primary); font-weight: 600; text-decoration: none;">Đăng nhập ngay</a>
+                </div>
+            </form>
+        </div>
+    </div>
 </body>
 
 </html>

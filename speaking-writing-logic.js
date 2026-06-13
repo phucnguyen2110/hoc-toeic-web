@@ -81,10 +81,19 @@ function initSpeakWriteListeners() {
     document.getElementById('wr-prev-btn')?.addEventListener('click', () => navigateQuestion(-1));
     document.getElementById('wr-next-btn')?.addEventListener('click', () => navigateQuestion(1));
 
-    // Live word count for writing
+    // Live word count & draft saving for writing
     const textarea = document.getElementById('wr-input-area');
     if (textarea) {
-        textarea.addEventListener('input', updateWritingWordCount);
+        textarea.addEventListener('input', () => {
+            updateWritingWordCount();
+            
+            // Save draft
+            const question = speakWriteState.questions[speakWriteState.currentIndex];
+            if (question) {
+                const draftKey = `wr_draft_${question.id}`;
+                localStorage.setItem(draftKey, textarea.value);
+            }
+        });
     }
 }
 
@@ -121,7 +130,7 @@ function exitSpeakWriteModule() {
 
 function resetSpeakWriteState() {
     stopAllTimers();
-    stopAudioRecording();
+    stopAudioRecordingOnly(); // Stop recording without ASR trigger
     stopTTS();
     
     speakWriteState.timerState = 'idle';
@@ -132,6 +141,15 @@ function resetSpeakWriteState() {
         URL.revokeObjectURL(speakWriteState.audioUrl);
         speakWriteState.audioUrl = null;
     }
+
+    // Reset Speech Recognition (ASR)
+    if (speakWriteState.speechRecognitionInstance) {
+        try {
+            speakWriteState.speechRecognitionInstance.stop();
+        } catch(e) {}
+        speakWriteState.speechRecognitionInstance = null;
+    }
+    speakWriteState.asrTranscript = '';
 }
 
 // ============================================
@@ -200,6 +218,19 @@ function renderSpeakingQuestion() {
         playback.src = '';
         playback.classList.add('hidden');
     }
+
+    // Reset ASR Transcript box
+    const transcriptBox = document.getElementById('sp-speech-transcript-box');
+    const transcriptText = document.getElementById('sp-speech-text');
+    const comparisonBox = document.getElementById('sp-speech-comparison');
+    if (transcriptBox && transcriptText && comparisonBox) {
+        transcriptBox.classList.add('hidden');
+        transcriptText.textContent = 'Đang chờ giọng nói...';
+        comparisonBox.classList.add('hidden');
+        comparisonBox.innerHTML = '';
+    }
+    speakWriteState.asrTranscript = '';
+    speakWriteState.speechRecognitionInstance = null;
 
     // Reset sample response card
     document.getElementById('sp-sample-card').classList.add('hidden');
@@ -311,6 +342,31 @@ function startAudioRecording() {
                 
                 document.getElementById('sp-play-btn').disabled = false;
                 
+                // Sync Speaking attempt to backend database if logged in
+                if (typeof authState !== 'undefined' && authState.user) {
+                    const question = speakWriteState.questions[speakWriteState.currentIndex];
+                    fetch('/api/attempts', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            ...getAuthHeader()
+                        },
+                        body: JSON.stringify({
+                            type: 'speaking',
+                            question_id: `Part ${question.part} - Q${speakWriteState.currentIndex + 1}`,
+                            user_input: `[Đã ghi âm bài nói thành công - dung lượng ${Math.round(speakWriteState.audioBlob.size / 1024)} KB]`,
+                            score: 10,
+                            max_score: 10,
+                            feedback: `Đã thu âm bài nói thành công. Bạn hãy nghe lại giọng đọc của mình và so sánh với bài mẫu:\n\n"${question.sampleResponse}"\n\nTips: ${question.tips}`,
+                            date: new Date().toLocaleString('vi-VN')
+                        })
+                    }).then(res => {
+                        if (res.ok && typeof loadPracticeHistory === 'function') {
+                            loadPracticeHistory();
+                        }
+                    }).catch(err => console.error('Failed to sync speaking attempt:', err));
+                }
+                
                 // Stop all tracks in stream to release microphone
                 stream.getTracks().forEach(track => track.stop());
             };
@@ -318,6 +374,40 @@ function startAudioRecording() {
             speakWriteState.mediaRecorder.start();
             speakWriteState.isRecording = true;
             
+            // Start Speech Recognition (ASR)
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (SpeechRecognition) {
+                const rec = new SpeechRecognition();
+                rec.lang = 'en-US';
+                rec.continuous = true;
+                rec.interimResults = false;
+                
+                speakWriteState.asrTranscript = '';
+                
+                rec.onresult = (event) => {
+                    const result = event.results[event.results.length - 1][0].transcript;
+                    speakWriteState.asrTranscript += (speakWriteState.asrTranscript ? ' ' : '') + result;
+                    
+                    const tBox = document.getElementById('sp-speech-transcript-box');
+                    const tText = document.getElementById('sp-speech-text');
+                    if (tBox && tText) {
+                        tBox.classList.remove('hidden');
+                        tText.textContent = speakWriteState.asrTranscript;
+                    }
+                };
+                
+                rec.onerror = (e) => {
+                    console.warn("ASR Error:", e);
+                };
+                
+                try {
+                    rec.start();
+                    speakWriteState.speechRecognitionInstance = rec;
+                } catch(e) {
+                    console.error("ASR start failed:", e);
+                }
+            }
+
             const recBtn = document.getElementById('sp-record-btn');
             recBtn.disabled = false;
             recBtn.classList.add('recording');
@@ -340,6 +430,19 @@ function stopAudioRecording() {
         speakWriteState.mediaRecorder.stop();
         speakWriteState.isRecording = false;
         
+        // Stop Speech Recognition
+        if (speakWriteState.speechRecognitionInstance) {
+            try {
+                speakWriteState.speechRecognitionInstance.stop();
+            } catch(e) {}
+            speakWriteState.speechRecognitionInstance = null;
+            
+            // Compare and highlight after a short delay
+            setTimeout(() => {
+                compareSpeechAndHighlight();
+            }, 600);
+        }
+
         const recBtn = document.getElementById('sp-record-btn');
         recBtn.classList.remove('recording');
         recBtn.innerHTML = `
@@ -389,13 +492,27 @@ function renderWritingQuestion() {
     
     const question = speakWriteState.questions[speakWriteState.currentIndex];
     
-    // Reset word count and textarea
+    // Restore or reset draft
     const textarea = document.getElementById('wr-input-area');
+    const draftStatus = document.getElementById('wr-draft-status');
+    const draftKey = `wr_draft_${question.id}`;
+    const savedDraft = localStorage.getItem(draftKey);
+    
     if (textarea) {
-        textarea.value = '';
+        if (savedDraft) {
+            textarea.value = savedDraft;
+            if (draftStatus) draftStatus.classList.remove('hidden');
+        } else {
+            textarea.value = '';
+            if (draftStatus) draftStatus.classList.add('hidden');
+        }
         textarea.placeholder = getWritingPlaceholder(question.part);
     }
-    document.getElementById('wr-word-count').textContent = 'Số từ: 0';
+    
+    // Update word count
+    const initialText = savedDraft || '';
+    const wordCount = initialText.trim() === '' ? 0 : initialText.trim().split(/\s+/).filter(w => w.length > 0).length;
+    document.getElementById('wr-word-count').textContent = `Số từ: ${wordCount}`;
     
     // Update headers
     document.getElementById('wr-question-count').textContent = `Câu ${speakWriteState.currentIndex + 1}/${speakWriteState.questions.length}`;
@@ -735,14 +852,7 @@ function evaluateWriting100Percent() {
             reports.push(`<li style="color: var(--color-error); font-weight: 500;">✗ Lỗi định dạng (${detail.join(', ')}) (0đ)</li>`);
         }
 
-        // Feedback
-        if (rawScore === 8) {
-            feedback = "Tuyệt vời! Câu của bạn viết đúng cấu trúc, sử dụng chính xác 2 từ gợi ý và định dạng hoàn hảo.";
-        } else if (rawScore >= 4) {
-            feedback = "Khá tốt! Bạn hãy chú ý thêm từ khóa còn thiếu hoặc điều chỉnh viết hoa chữ cái đầu và dấu chấm câu để đạt điểm tối đa.";
-        } else {
-            feedback = "Bài làm cần cải thiện. Hãy chắc chắn rằng bạn viết một câu hoàn chỉnh chứa cả hai từ khóa, có viết hoa chữ cái đầu và dấu chấm cuối câu.";
-        }
+        // Feedback will be evaluated after grammar checks
 
     } else if (question.part === 2) {
         // Part 2: Respond to a written request (0-8 raw score)
@@ -782,14 +892,7 @@ function evaluateWriting100Percent() {
             reports.push(`<li style="color: var(--color-warning); font-weight: 500;">⚠ Số câu viết hơi ít: Có ${sentenceCount} câu (Khuyên dùng ít nhất 4 câu để diễn đạt đủ 2 yêu cầu).</li>`);
         }
 
-        // Feedback
-        if (rawScore === 8) {
-            feedback = "Rất tốt! Email phản hồi của bạn có bố cục rõ ràng của một email giao dịch, đầy đủ thông tin yêu cầu và hành văn tự nhiên.";
-        } else if (rawScore >= 4) {
-            feedback = "Đầy đủ ý chính. Để email chuyên nghiệp hơn, hãy thêm lời chào trang trọng ở đầu hoặc lời kết thúc ở cuối thư.";
-        } else {
-            feedback = "Email quá ngắn hoặc thiếu các phần cơ bản của thư tín thương mại. Hãy chắc chắn rằng bạn đã trả lời đầy đủ cả hai câu hỏi được đặt ra trong đề bài.";
-        }
+        // Feedback will be evaluated after grammar checks
 
     } else if (question.part === 3) {
         // Part 3: Write an opinion essay (0-24 raw score)
@@ -850,12 +953,52 @@ function evaluateWriting100Percent() {
         }
 
         // Feedback
-        if (rawScore >= 20) {
+        // Feedback will be evaluated after grammar checks
+    }
+
+    // Perform Grammar and Spelling Checks
+    const grammarErrors = checkGrammarAndSpelling(userText);
+    if (grammarErrors.length > 0) {
+        // Deduct points from raw score depending on the Part (max penalty: Part 1: 2 points, Part 2: 2 points, Part 3: 4 points)
+        const maxDeduction = question.part === 3 ? 4 : 2;
+        const deduction = Math.min(grammarErrors.length, maxDeduction);
+        rawScore = Math.max(0, rawScore - deduction);
+        
+        reports.push(`<li style="color: var(--color-error); font-weight: bold; margin-top: 10px; border-top: 1px dashed rgba(239, 68, 68, 0.2); padding-top: 8px;">✗ Phát hiện ${grammarErrors.length} lỗi ngữ pháp / chính tả (-${deduction}đ):</li>`);
+        grammarErrors.forEach(err => {
+            reports.push(`<li style="color: var(--color-error); font-size: var(--font-size-sm); margin-left: 15px; list-style-type: circle; line-height: 1.5; margin-bottom: 4px;">
+                Cụm từ <strong>"${err.original}"</strong> -> Gợi ý: <strong>"${err.suggestion}"</strong><br>
+                <span style="color: var(--color-text-secondary); font-style: italic;">(${err.message})</span>
+            </li>`);
+        });
+    } else {
+        reports.push(`<li style="color: var(--color-success); font-weight: 500; margin-top: 10px; border-top: 1px dashed rgba(16, 185, 129, 0.2); padding-top: 8px;">✓ Không phát hiện lỗi chính tả hay ngữ pháp cơ bản (+0đ)</li>`);
+    }
+
+    // Set final feedback based on the score after all deductions
+    if (question.part === 1) {
+        if (rawScore === 8 && grammarErrors.length === 0) {
+            feedback = "Tuyệt vời! Câu của bạn viết đúng cấu trúc, sử dụng chính xác 2 từ gợi ý và định dạng hoàn hảo.";
+        } else if (rawScore >= 4) {
+            feedback = "Khá tốt! Bạn hãy chú ý sửa các lỗi ngữ pháp/chính tả đã phát hiện hoặc bổ sung thêm từ khóa để đạt điểm tối đa.";
+        } else {
+            feedback = "Bài làm cần cải thiện. Hãy chắc chắn rằng bạn viết một câu hoàn chỉnh không chứa lỗi ngữ pháp, chứa cả hai từ khóa, có viết hoa chữ cái đầu và dấu chấm cuối câu.";
+        }
+    } else if (question.part === 2) {
+        if (rawScore === 8 && grammarErrors.length === 0) {
+            feedback = "Rất tốt! Email phản hồi của bạn có bố cục rõ ràng của một email giao dịch, đầy đủ thông tin yêu cầu và hành văn tự nhiên.";
+        } else if (rawScore >= 4) {
+            feedback = "Đầy đủ ý chính. Hãy chú ý sửa các lỗi chính tả/ngữ pháp và bổ sung lời chào mở đầu/kết thúc để email chuyên nghiệp hơn.";
+        } else {
+            feedback = "Email quá ngắn hoặc thiếu các phần cơ bản của thư tín thương mại. Hãy xem lại các lỗi ngữ pháp đã được phát hiện và viết câu đầy đủ.";
+        }
+    } else if (question.part === 3) {
+        if (rawScore >= 20 && grammarErrors.length === 0) {
             feedback = "Bài luận của bạn rất xuất sắc! Lập luận chặt chẽ, từ nối phong phú, độ dài đạt yêu cầu và bố cục mạch lạc.";
         } else if (rawScore >= 12) {
-            feedback = "Tốt, tuy nhiên bạn cần viết dài hơn và bổ sung thêm các trạng từ chỉ luận điểm (First, Second, Therefore, For example...) để liên kết các đoạn chặt chẽ hơn.";
+            feedback = "Tốt, tuy nhiên bạn cần viết dài hơn, chú ý sửa các lỗi ngữ pháp/chính tả và bổ sung thêm các trạng từ chỉ luận điểm (First, Second, Therefore, For example...) để liên kết các đoạn.";
         } else {
-            feedback = "Bài viết luận chưa đạt cấu trúc chuẩn. Bạn hãy chia bài luận ra làm các đoạn: Mở bài nêu ý kiến, Thân bài đưa ra lý do + ví dụ thực tế và Kết bài tổng kết.";
+            feedback = "Bài viết luận chưa đạt cấu trúc chuẩn hoặc chứa nhiều lỗi ngữ pháp. Bạn hãy chia bài luận ra làm các đoạn: Mở bài nêu ý kiến, Thân bài đưa ra lý do + ví dụ thực tế và Kết bài tổng kết.";
         }
     }
 
@@ -885,6 +1028,36 @@ function evaluateWriting100Percent() {
         feedbackText.textContent = feedback;
     }
 
+    // Sync attempt to backend database if logged in
+    if (typeof authState !== 'undefined' && authState.user) {
+        fetch('/api/attempts', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...getAuthHeader()
+            },
+            body: JSON.stringify({
+                type: 'writing',
+                question_id: `Part ${question.part} - Q${speakWriteState.currentIndex + 1}`,
+                user_input: userText,
+                score: scaledScore,
+                max_score: 200,
+                feedback: feedback,
+                date: new Date().toLocaleString('vi-VN')
+            })
+        }).then(res => {
+            if (res.ok && typeof loadPracticeHistory === 'function') {
+                loadPracticeHistory();
+            }
+        }).catch(err => console.error('Failed to sync writing attempt:', err));
+    }
+
+    // Clear draft on submit
+    const draftKey = `wr_draft_${question.id}`;
+    localStorage.removeItem(draftKey);
+    const draftStatus = document.getElementById('wr-draft-status');
+    if (draftStatus) draftStatus.classList.add('hidden');
+
     // Show result card
     const resultCard = document.getElementById('wr-result-card');
     if (resultCard) {
@@ -893,11 +1066,374 @@ function evaluateWriting100Percent() {
     }
 }
 
-function matchKeyword(text, word) {
-    const lowerText = text.toLowerCase();
-    if (root.length >= 3) {
-        return lowerText.includes(root);
+let toeicDictionary = new Set();
+
+function buildToeicDictionary() {
+    // 1. Add words from vocabularyData
+    if (typeof vocabularyData !== 'undefined' && vocabularyData.topics) {
+        vocabularyData.topics.forEach(topic => {
+            if (topic.words) {
+                topic.words.forEach(w => {
+                    if (w.word) toeicDictionary.add(w.word.toLowerCase().trim());
+                });
+            }
+        });
     }
+    
+    // 2. Add words from speakingData & writingData
+    const addText = (text) => {
+        if (!text) return;
+        const words = text.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?"]/g, "").split(/\s+/);
+        words.forEach(w => {
+            if (w.length >= 3 && /^[a-z]+$/.test(w)) {
+                toeicDictionary.add(w);
+            }
+        });
+    };
+    
+    if (typeof speakingData !== 'undefined' && speakingData.questions) {
+        speakingData.questions.forEach(q => {
+            addText(q.questionText);
+            addText(q.sampleResponse);
+            addText(q.tips);
+        });
+    }
+    
+    if (typeof writingData !== 'undefined' && writingData.questions) {
+        writingData.questions.forEach(q => {
+            addText(q.emailPrompt);
+            addText(q.questionText);
+            addText(q.sampleResponse);
+            addText(q.tips);
+            if (q.words) {
+                q.words.forEach(w => addText(w));
+            }
+        });
+    }
+    
+    // 3. Add some common grammar/function words
+    const commonWords = [
+        "the", "be", "to", "of", "and", "a", "in", "that", "have", "i", "it", "for", "not", "on", "with", "he", "as", 
+        "you", "do", "at", "this", "but", "his", "by", "from", "they", "we", "say", "her", "she", "or", "an", "will", 
+        "my", "one", "all", "would", "there", "their", "what", "so", "up", "out", "if", "about", "who", "get", "which", 
+        "go", "me", "when", "make", "can", "like", "time", "no", "just", "him", "know", "take", "people", "into", "year", 
+        "your", "good", "some", "could", "them", "see", "other", "than", "then", "now", "look", "only", "come", "its", 
+        "over", "think", "also", "back", "after", "use", "two", "how", "our", "work", "first", "well", "way", "even", 
+        "new", "want", "because", "any", "these", "give", "day", "most", "us", "many", "much", "very", "about", "some", 
+        "any", "no", "each", "every", "all", "both", "either", "neither", "another", "other", "such", "what", "which", 
+        "whose"
+    ];
+    commonWords.forEach(w => toeicDictionary.add(w));
+}
+
+function getLevenshteinDistance(a, b) {
+    if (a.length === 0) return b.length;
+    if (b.length === 0) return a.length;
+    const matrix = [];
+    for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+    for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+    for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+            if (b.charAt(i - 1) === a.charAt(j - 1)) {
+                matrix[i][j] = matrix[i - 1][j - 1];
+            } else {
+                matrix[i][j] = Math.min(
+                    matrix[i - 1][j - 1] + 1,
+                    matrix[i][j - 1] + 1,
+                    matrix[i - 1][j] + 1
+                );
+            }
+        }
+    }
+    return matrix[b.length][a.length];
+}
+
+function isValidWord(word) {
+    const clean = word.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?"]/g, "").trim();
+    if (clean.length < 3) return true;
+    if (/^\d+$/.test(clean)) return true;
+    
+    if (toeicDictionary.has(clean)) return true;
+    
+    const stems = [];
+    if (clean.endsWith("ing")) stems.push(clean.slice(0, -3));
+    if (clean.endsWith("ed")) {
+        stems.push(clean.slice(0, -2));
+        stems.push(clean.slice(0, -1));
+    }
+    if (clean.endsWith("ies")) stems.push(clean.slice(0, -3) + "y");
+    if (clean.endsWith("es")) stems.push(clean.slice(0, -2));
+    if (clean.endsWith("s")) stems.push(clean.slice(0, -1));
+    if (clean.endsWith("ly")) stems.push(clean.slice(0, -2));
+    
+    for (const stem of stems) {
+        if (toeicDictionary.has(stem)) return true;
+    }
+    return false;
+}
+
+function checkGrammarAndSpelling(text) {
+    if (toeicDictionary.size === 0) {
+        buildToeicDictionary();
+    }
+
+    const errors = [];
+    const lowerText = text.toLowerCase();
+
+    // 1. Repeated words
+    const repeatedWordRegex = /\b(\w+)\s+\1\b/gi;
+    let match;
+    while ((match = repeatedWordRegex.exec(text)) !== null) {
+        errors.push({
+            type: 'spelling',
+            original: match[0],
+            suggestion: match[1],
+            message: `Lặp từ: từ "${match[1]}" bị lặp lại liên tiếp.`
+        });
+    }
+
+    // 2. Spacing before punctuation
+    const spacingPunctRegex = /\s+([.,!?;:])\b/g;
+    while ((match = spacingPunctRegex.exec(text)) !== null) {
+        errors.push({
+            type: 'punctuation',
+            original: match[0],
+            suggestion: match[1],
+            message: `Lỗi khoảng trắng trước dấu câu "${match[1]}". Không để dấu cách trước dấu câu.`
+        });
+    }
+
+    // 3. Subject-Verb Agreement
+    const singularSVA = /\b(he|she|it|everyone|someone|everybody|somebody|nobody|each|this|that)\s+(go|do|have|work|run|say|make|take|come|see|get|give|think|look|want|use|find|tell|ask|seem|feel|try|leave|call|need|discuss|collaborate|construct)\b/g;
+    while ((match = singularSVA.exec(lowerText)) !== null) {
+        const subject = match[1];
+        const verb = match[2];
+        let correctVerb = verb + 's';
+        if (verb === 'go') correctVerb = 'goes';
+        else if (verb === 'do') correctVerb = 'does';
+        else if (verb === 'have') correctVerb = 'has';
+        else if (verb === 'discuss') correctVerb = 'discusses';
+        
+        errors.push({
+            type: 'grammar',
+            original: text.substr(match.index, match[0].length),
+            suggestion: `${subject} ${correctVerb}`,
+            message: `Chia động từ số ít: Chủ ngữ "${subject}" đi với động từ dạng số ít "${correctVerb}".`
+        });
+    }
+
+    const pluralSVA = /\b(they|we|you|i|these|those)\s+(has|goes|does|works|runs|says|makes|takes|comes|sees|gets|gives|thinks|looks|wants|uses|finds|tells|asks|seems|feels|tries|leaves|calls|needs|discusses|collaborates|constructs)\b/g;
+    while ((match = pluralSVA.exec(lowerText)) !== null) {
+        const subject = match[1];
+        const verb = match[2];
+        let correctVerb = verb.slice(0, -1);
+        if (verb === 'has') correctVerb = 'have';
+        else if (verb === 'goes') correctVerb = 'go';
+        else if (verb === 'does') correctVerb = 'do';
+        else if (verb === 'discusses') correctVerb = 'discuss';
+        
+        errors.push({
+            type: 'grammar',
+            original: text.substr(match.index, match[0].length),
+            suggestion: `${subject} ${correctVerb}`,
+            message: `Chia động từ số nhiều: Chủ ngữ "${subject}" đi với động từ dạng nguyên mẫu "${correctVerb}".`
+        });
+    }
+    
+    const iHasRegex = /\bi\s+has\b/g;
+    while ((match = iHasRegex.exec(lowerText)) !== null) {
+        errors.push({
+            type: 'grammar',
+            original: text.substr(match.index, match[0].length),
+            suggestion: "I have",
+            message: `Chủ ngữ "I" đi với động từ "have", không đi với "has".`
+        });
+    }
+
+    // 4. Articles (a vs an)
+    const badA = /\b(a)\s+(apple|hour|orange|office|employee|interview|agenda|assignment|agent|application|email|essay|industry|opportunity|assistant|expert|engineer|owner)\b/g;
+    while ((match = badA.exec(lowerText)) !== null) {
+        errors.push({
+            type: 'grammar',
+            original: text.substr(match.index, match[0].length),
+            suggestion: `an ${match[2]}`,
+            message: `Mạo từ không khớp: Sử dụng "an" trước từ bắt đầu bằng nguyên âm "${match[2]}".`
+        });
+    }
+
+    const badAn = /\b(an)\s+(building|construct|meeting|desk|computer|document|presentation|whiteboard|company|business|management|project|team|user|job|work|client|customer|member|partner|request)\b/g;
+    while ((match = badAn.exec(lowerText)) !== null) {
+        errors.push({
+            type: 'grammar',
+            original: text.substr(match.index, match[0].length),
+            suggestion: `a ${match[2]}`,
+            message: `Mạo từ không khớp: Sử dụng "a" trước từ bắt đầu bằng phụ âm "${match[2]}".`
+        });
+    }
+
+    // 5. Prepositions & common collocations
+    const discussAbout = /\bdiscuss\s+about\b/g;
+    while ((match = discussAbout.exec(lowerText)) !== null) {
+        errors.push({
+            type: 'grammar',
+            original: text.substr(match.index, match[0].length),
+            suggestion: "discuss",
+            message: `Giới từ thừa: "discuss" là ngoại động từ trực tiếp, không đi kèm giới từ "about". Ví dụ: "discuss the plan".`
+        });
+    }
+
+    const interestedOn = /\binterested\s+(on|at)\b/g;
+    while ((match = interestedOn.exec(lowerText)) !== null) {
+        errors.push({
+            type: 'grammar',
+            original: text.substr(match.index, match[0].length),
+            suggestion: "interested in",
+            message: `Sai giới từ: Cấu trúc đúng là "interested in".`
+        });
+    }
+
+    const dependOf = /\bdepend\s+of\b/g;
+    while ((match = dependOf.exec(lowerText)) !== null) {
+        errors.push({
+            type: 'grammar',
+            original: text.substr(match.index, match[0].length),
+            suggestion: "depend on",
+            message: `Sai giới từ: Cấu trúc đúng là "depend on".`
+        });
+    }
+
+    const congratulateFor = /\bcongratulate\s+for\b/g;
+    while ((match = congratulateFor.exec(lowerText)) !== null) {
+        errors.push({
+            type: 'grammar',
+            original: text.substr(match.index, match[0].length),
+            suggestion: "congratulate on",
+            message: `Sai giới từ: Cấu trúc đúng là "congratulate on".`
+        });
+    }
+
+    const lookForwardTo = /\blook\s+forward\s+to\s+(go|do|have|hear|see|meet|receive|send|work)\b/g;
+    while ((match = lookForwardTo.exec(lowerText)) !== null) {
+        const verb = match[1];
+        errors.push({
+            type: 'grammar',
+            original: text.substr(match.index, match[0].length),
+            suggestion: `look forward to ${verb}ing`,
+            message: `Sai cấu trúc: Sau "look forward to" là danh động từ (V-ing), ví dụ: "look forward to hearing".`
+        });
+    }
+
+    const capableTo = /\bcapable\s+to\s+(\w+)\b/g;
+    while ((match = capableTo.exec(lowerText)) !== null) {
+        const verb = match[1];
+        errors.push({
+            type: 'grammar',
+            original: text.substr(match.index, match[0].length),
+            suggestion: `capable of ${verb}ing`,
+            message: `Sai cấu trúc: Dùng "capable of V-ing" thay vì "capable to V".`
+        });
+    }
+
+    const differentThan = /\bdifferent\s+than\b/g;
+    while ((match = differentThan.exec(lowerText)) !== null) {
+        errors.push({
+            type: 'grammar',
+            original: text.substr(match.index, match[0].length),
+            suggestion: "different from",
+            message: `Lỗi diễn đạt: Nên dùng "different from".`
+        });
+    }
+
+    // 7. Be verb + base verb (passive/active voice error)
+    const beBaseVerb = /\b(am|is|are|was|were|be|been|being)\s+(go|do|work|run|say|make|take|come|see|get|give|think|look|want|use|find|tell|ask|seem|feel|try|leave|call|need|discuss|collaborate|construct|write|build|develop|create|play|study|learn)\b/g;
+    while ((match = beBaseVerb.exec(lowerText)) !== null) {
+        const be = match[1];
+        const verb = match[2];
+        let suggestion = `${be} ${verb}ing hoặc ${be} ${verb}ed`;
+        if (verb === 'go') suggestion = `${be} going`;
+        else if (verb === 'do') suggestion = `${be} doing hoặc ${be} done`;
+        else if (verb === 'construct') suggestion = `${be} constructed hoặc ${be} constructing`;
+        else if (verb === 'build') suggestion = `${be} building hoặc ${be} built`;
+        
+        errors.push({
+            type: 'grammar',
+            original: text.substr(match.index, match[0].length),
+            suggestion: suggestion,
+            message: `Sai cấu trúc: Sau động từ to-be "${be}" phải là V-ing (chủ động) hoặc V3/V-ed (bị động/hoàn thành), không đi với động từ nguyên mẫu.`
+        });
+    }
+
+    // 8. General Dynamic Spelling Check using Levenshtein distance
+    const rawWords = text.split(/\s+/);
+    rawWords.forEach(raw => {
+        const clean = raw.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?"]/g, "").trim();
+        if (clean.length >= 4 && !isValidWord(clean)) {
+            // Find closest word in dictionary
+            let closest = "";
+            let minDistance = 999;
+            toeicDictionary.forEach(dictWord => {
+                if (Math.abs(dictWord.length - clean.length) <= 2) {
+                    const dist = getLevenshteinDistance(clean, dictWord);
+                    if (dist < minDistance) {
+                        minDistance = dist;
+                        closest = dictWord;
+                    }
+                }
+            });
+            if (minDistance <= 2 && closest !== "") {
+                const index = lowerText.indexOf(clean);
+                errors.push({
+                    type: 'spelling',
+                    original: raw,
+                    suggestion: closest,
+                    message: `Lỗi chính tả: Có thể bạn viết sai từ "${clean}". Có phải bạn muốn viết là "${closest}"?`
+                });
+            }
+        }
+    });
+
+    return errors;
+}
+
+function matchKeyword(text, word) {
+    if (!word) return false;
+    const lowerText = text.toLowerCase();
+    const cleanWord = word.toLowerCase().trim();
+    
+    // Direct match first
+    if (lowerText.includes(cleanWord)) {
+        return true;
+    }
+    
+    // Generate root/stem forms of the keyword to match against
+    const stems = [cleanWord];
+    
+    if (cleanWord.endsWith("ing")) {
+        stems.push(cleanWord.slice(0, -3)); // building -> build
+    }
+    if (cleanWord.endsWith("ed")) {
+        stems.push(cleanWord.slice(0, -2)); // constructed -> construct
+        stems.push(cleanWord.slice(0, -1)); // loved -> love
+    }
+    if (cleanWord.endsWith("ies")) {
+        stems.push(cleanWord.slice(0, -3) + "y"); // studies -> study
+    }
+    if (cleanWord.endsWith("es")) {
+        stems.push(cleanWord.slice(0, -2)); // boxes -> box
+    }
+    if (cleanWord.endsWith("s") && !cleanWord.endsWith("ss")) {
+        stems.push(cleanWord.slice(0, -1)); // documents -> document
+    }
+    if (cleanWord.endsWith("e")) {
+        stems.push(cleanWord.slice(0, -1)); // collaborate -> collaborat
+    }
+    
+    for (const stem of stems) {
+        if (stem.length >= 3 && lowerText.includes(stem)) {
+            return true;
+        }
+    }
+    
     return false;
 }
 
@@ -1068,5 +1604,60 @@ function startLessonPractice(mode, part) {
             renderWritingQuestion();
         }
     }
+}
+
+// ============================================
+// AI SPEECH ASR MATCHING ENGINE
+// ============================================
+
+function compareSpeechAndHighlight() {
+    const transcriptBox = document.getElementById('sp-speech-transcript-box');
+    const comparisonBox = document.getElementById('sp-speech-comparison');
+    if (!transcriptBox || !comparisonBox) return;
+
+    const userTranscript = (speakWriteState.asrTranscript || '').trim();
+    if (!userTranscript) {
+        comparisonBox.innerHTML = '<span style="color: var(--color-text-secondary); font-style: italic;">Không thể nhận diện giọng nói để đối sánh. Vui lòng đọc lại bài mẫu.</span>';
+        comparisonBox.classList.remove('hidden');
+        return;
+    }
+
+    const question = speakWriteState.questions[speakWriteState.currentIndex];
+    const targetText = (question.questionText || question.sampleResponse || '').trim();
+    if (!targetText) return;
+
+    // Split texts into words and clean punctuation
+    const cleanWord = (w) => w.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "").trim();
+    
+    const targetWords = targetText.split(/\s+/).filter(w => w.length > 0);
+    const userWords = userTranscript.split(/\s+/).filter(w => w.length > 0).map(cleanWord);
+
+    // Build matching markup
+    let html = '<strong style="color: var(--color-primary-light);">So sánh với bài đọc mẫu:</strong><br><p style="margin-top: 5px; line-height: 1.8; margin-bottom: 0;">';
+    
+    targetWords.forEach(target => {
+        const cleanedTarget = cleanWord(target);
+        const index = userWords.indexOf(cleanedTarget);
+        if (index !== -1) {
+            html += `<span class="asr-word-correct">${target}</span> `;
+            userWords.splice(index, 1);
+        } else {
+            html += `<span class="asr-word-missing">${target}</span> `;
+        }
+    });
+    
+    html += '</p>';
+
+    // Show remaining user words as extra words spoken
+    const extraWords = userWords.filter(w => w.length > 0);
+    if (extraWords.length > 0) {
+        html += `<div style="font-size: var(--font-size-xs); color: var(--color-text-secondary); margin-top: 8px; border-top: 1px dashed rgba(255, 255, 255, 0.05); padding-top: 5px;">
+            <span>Từ thừa nhận diện thêm: </span>
+            <span class="asr-word-extra" style="font-style: italic;">${extraWords.join(', ')}</span>
+        </div>`;
+    }
+
+    comparisonBox.innerHTML = html;
+    comparisonBox.classList.remove('hidden');
 }
 
