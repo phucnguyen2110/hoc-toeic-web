@@ -14,6 +14,22 @@ const JWT_SECRET = process.env.JWT_SECRET || 'toeic-master-super-secret-key';
 // Middleware
 app.use(express.json());
 
+// Database Lazy Initialization Middleware for Serverless & Local Environment
+let dbInitialized = false;
+async function ensureDbInitialized(req, res, next) {
+    if (!dbInitialized) {
+        try {
+            await initDb();
+            dbInitialized = true;
+        } catch (err) {
+            console.error('Database initialization failed:', err.message);
+            return res.status(500).json({ error: 'Không thể khởi tạo cơ sở dữ liệu.' });
+        }
+    }
+    next();
+}
+app.use(ensureDbInitialized);
+
 // Serve static files directly from the root directory
 app.use(express.static(__dirname));
 
@@ -264,14 +280,8 @@ app.get('*', (req, res) => {
 
 // Start Server
 if (require.main === module) {
-    app.listen(PORT, async () => {
+    app.listen(PORT, () => {
         console.log(`Server is running at: http://localhost:${PORT}`);
-        try {
-            await initDb();
-        } catch (err) {
-            console.error('Database initialization failed. Stopping server.');
-            process.exit(1);
-        }
     });
 }
 

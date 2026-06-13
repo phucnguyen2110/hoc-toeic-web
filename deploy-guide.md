@@ -45,18 +45,18 @@ git push origin main
 4.  Giữ nguyên cấu hình dự án mặc định (Vercel sẽ đọc file `vercel.json` để tự động điều phối Frontend tĩnh và `/api` Serverless Backend).
 
 ### Bước 3: Tạo và liên kết Database PostgreSQL trên Vercel
-Vercel cung cấp sẵn tính năng tạo cơ sở dữ liệu Postgres miễn phí cực kỳ nhanh chóng:
-1.  Tại trang cấu hình deploy (hoặc trang quản trị dự án trên Vercel), nhấp vào tab **Storage**.
-2.  Chọn **Postgres** và nhấp vào **Create**.
-3.  Chọn khu vực máy chủ database gần bạn nhất (ví dụ: Singapore - `ap-southeast-1`) và nhấn **Create**.
-4.  Nhấp nút **Connect** để liên kết cơ sở dữ liệu này với dự án TOEIC của bạn. Vercel sẽ tự động tạo và cấu hình các biến môi trường kết nối database vào dự án.
+Vercel hỗ trợ liên kết nhanh với các nhà cung cấp Postgres Serverless chất lượng:
+1.  Tại trang quản trị dự án trên Vercel, nhấp vào tab **Storage**.
+2.  Tại phần **Marketplace Database Providers**, tìm dòng **Neon (Serverless Postgres)** và nhấp vào nút **Create**.
+3.  Chọn khu vực máy chủ database gần bạn nhất (ví dụ: Singapore - `ap-southeast-1`) và nhấn **Create** để khởi tạo database.
+4.  Sau khi khởi tạo, nhấn nút **Connect** để liên kết cơ sở dữ liệu này với dự án TOEIC của bạn. Vercel và Neon sẽ tự động tạo và cấu hình các biến môi trường kết nối database vào dự án của bạn (thông số mặc định thường là `DATABASE_URL`).
 
 ### Bước 4: Thiết lập Biến môi trường (Environment Variables)
 1.  Vào mục **Settings** $\rightarrow$ Chọn **Environment Variables** trên Vercel dự án của bạn.
-2.  Thêm biến môi trường sau:
-    *   **`DATABASE_URL`**: Sao chép nguyên văn giá trị kết nối của biến `POSTGRES_URL` (mà Vercel vừa tạo ở Bước 3) dán vào đây.
+2.  Kiểm tra xem biến **`DATABASE_URL`** đã tự động xuất hiện chưa (do Neon tạo ở Bước 3). Nếu chưa, bạn chỉ cần sao chép giá trị kết nối của biến `POSTGRES_URL` hoặc liên kết trực tiếp của Neon và tạo mới một biến đặt tên là **`DATABASE_URL`**.
+3.  Thêm biến môi trường bổ sung:
     *   **`JWT_SECRET`**: Nhập một chuỗi ký tự ngẫu nhiên bất kỳ để mã hóa phiên đăng nhập (ví dụ: `toeic_secret_key_2026_prod`).
-3.  Nhấp **Save**.
+4.  Nhấp **Save**.
 
 ### Bước 5: Tiến hành Deploy
 1.  Vào tab **Deployments** trên Vercel.
